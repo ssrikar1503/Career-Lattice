@@ -1,0 +1,39 @@
+{
+  "_comment": "Single source of truth for which companies the pipeline scrapes. To add a company: append one object below with slug, ats, industry, and (for workday only) tenant + site. The pipeline picks up new entries automatically on the next cron run. No Python edits required.",
+
+  "_schema": {
+    "slug":     "company identifier — for Greenhouse/Lever this is the URL slug; for Workday it's used as a label",
+    "ats":      "one of: greenhouse | lever | workday",
+    "industry": "one of: additive-manufacturing | semiconductors | space",
+    "tenant":   "(workday only) subdomain, e.g. 'intel' in intel.wd1.myworkdayjobs.com",
+    "wd":       "(workday only) datacenter number, e.g. 1 or 5 from .wd1. or .wd5.",
+    "site":     "(workday only) site path, e.g. 'External' or 'NVIDIAExternalCareerSite'"
+  },
+
+  "companies": [
+    { "slug": "carbon",             "ats": "greenhouse", "industry": "additive-manufacturing" },
+    { "slug": "markforged",         "ats": "greenhouse", "industry": "additive-manufacturing" },
+    { "slug": "xometry",            "ats": "greenhouse", "industry": "additive-manufacturing" },
+    { "slug": "fictiv",             "ats": "greenhouse", "industry": "additive-manufacturing" },
+    { "slug": "seurat",             "ats": "greenhouse", "industry": "additive-manufacturing" },
+    { "slug": "protolabs",          "ats": "lever",      "industry": "additive-manufacturing" },
+
+    { "slug": "tenstorrent",        "ats": "greenhouse", "industry": "semiconductors" },
+
+    { "slug": "planetlabs",         "ats": "greenhouse", "industry": "space" },
+    { "slug": "astranis",           "ats": "greenhouse", "industry": "space" },
+    { "slug": "rocketlab",          "ats": "greenhouse", "industry": "space" },
+    { "slug": "andurilindustries",  "ats": "greenhouse", "industry": "space" },
+    { "slug": "dawnaerospace",      "ats": "greenhouse", "industry": "space" },
+    { "slug": "momentus",           "ats": "greenhouse", "industry": "space" },
+
+    { "slug": "hp",                 "ats": "workday", "industry": "additive-manufacturing", "tenant": "hp",         "wd": 5, "site": "ExternalCareerSite" },
+    { "slug": "intel",              "ats": "workday", "industry": "semiconductors",         "tenant": "intel",      "wd": 1, "site": "External" },
+    { "slug": "nvidia",             "ats": "workday", "industry": "semiconductors",         "tenant": "nvidia",     "wd": 5, "site": "NVIDIAExternalCareerSite" },
+    { "slug": "micron",             "ats": "workday", "industry": "semiconductors",         "tenant": "micron",     "wd": 1, "site": "External" },
+    { "slug": "appliedmaterials",   "ats": "workday", "industry": "semiconductors",         "tenant": "amat",       "wd": 1, "site": "External" },
+    { "slug": "blueorigin",         "ats": "workday", "industry": "space",                  "tenant": "blueorigin", "wd": 5, "site": "BlueOrigin" },
+    { "slug": "boeing",             "ats": "workday", "industry": "space",                  "tenant": "boeing",     "wd": 1, "site": "EXTERNAL_CAREERS" },
+    { "slug": "leidos",             "ats": "workday", "industry": "space",                  "tenant": "leidos",     "wd": 5, "site": "External" }
+  ]
+}

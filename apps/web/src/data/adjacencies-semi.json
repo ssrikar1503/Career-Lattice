@@ -1,0 +1,456 @@
+{
+  "assembly-technician-semiconductor": [
+    "wire-bond-technician",
+    "packaging-equipment-technician",
+    "packaging-process-engineer",
+    "quality-control-engineer"
+  ],
+  "automation-robotics-engineer": [
+    "equipment-engineer-fab-tools",
+    "controls-automation-engineer",
+    "principal-packaging-engineer",
+    "director-of-packaging-operations"
+  ],
+  "building-automation-systems-technician-bas": [
+    "automation-robotics-engineer",
+    "controls-automation-engineer",
+    "senior-wafer-fab-equipment-technician",
+    "equipment-technician-wafer-fab",
+    "equipment-reliability-engineer"
+  ],
+  "business-operations-analyst-1": [
+    "logistics-coordinator",
+    "supply-chain-analyst",
+    "warehouse-supervisor",
+    "marketing-coordinator"
+  ],
+  "cad-eda-designer": [
+    "physical-design-engineer-1",
+    "applications-engineer"
+  ],
+  "cmp-process-technician": [
+    "water-fab-photolithography-technician",
+    "manufacturing-engineer-fab",
+    "diffusion-furnace-engineer",
+    "quality-control-engineer"
+  ],
+  "cnc-machinist-programmer": [
+    "tool-install-technician",
+    "equipment-calibration-technician",
+    "wet-bench-operator"
+  ],
+  "controls-automation-engineer": [
+    "facilities-manager",
+    "senior-automation-architect",
+    "senior-equipment-manager",
+    "reliability-test-engineer"
+  ],
+  "die-attach-technician": [
+    "test-technician",
+    "wire-bond-technician",
+    "assembly-technician-semiconductor",
+    "packaging-equipment-technician",
+    "equipment-calibration-technician",
+    "process-production-operator"
+  ],
+  "diffusion-furnace-engineer": [
+    "ion-implantation-engineer",
+    "manufacturing-supervisor",
+    "etch-process-engineer",
+    "metrology-inspection-engineer",
+    "failure-analysis-engineer"
+  ],
+  "director-of-business-operations": [
+    "supply-chain-manager",
+    "senior-director-of-supply-chain-sourcing",
+    "chief-operations-officer"
+  ],
+  "director-of-global-supply-chain": [
+    "logistics-director",
+    "senior-director-of-supply-chain-sourcing",
+    "director-of-business-operations",
+    "supply-chain-manager"
+  ],
+  "director-of-packaging-operations": [
+    "director-of-test-engineering",
+    "senior-reliability-manager",
+    "vp-of-packaging-operations"
+  ],
+  "director-of-process-randd": [
+    "chief-product-architect"
+  ],
+  "director-of-test-engineering": [
+    "director-of-packaging-operations",
+    "senior-reliability-manager",
+    "vp-of-packaging-operations"
+  ],
+  "dmf-reliability-engineer": [
+    "reliability-test-engineer",
+    "failure-analysis-engineer",
+    "senior-device-transistor-engineer",
+    "senior-cad-eda-engineer"
+  ],
+  "equipment-calibration-technician": [
+    "process-production-operator",
+    "water-fab-photolithography-technician",
+    "industrial-facilities-maintenance-technician",
+    "equipment-technician-wafer-fab"
+  ],
+  "equipment-engineer-fab-tools": [
+    "controls-automation-engineer",
+    "reliability-test-engineer",
+    "senior-equipment-manager",
+    "facilities-manager",
+    "senior-automation-architect"
+  ],
+  "equipment-reliability-engineer": [
+    "controls-automation-engineer",
+    "equipment-engineer-fab-tools",
+    "automation-robotics-engineer",
+    "reliability-test-engineer",
+    "failure-analysis-engineer"
+  ],
+  "etch-process-engineer": [
+    "metrology-inspection-engineer",
+    "senior-lithography-engineer",
+    "senior-deposition-engineer"
+  ],
+  "facilities-manager": [
+    "vp-of-plant-operations",
+    "chief-operations-officer",
+    "director-of-business-operations"
+  ],
+  "failure-analysis-engineer": [
+    "reliability-test-engineer",
+    "director-of-test-engineering",
+    "principal-packaging-engineer",
+    "metrology-inspection-engineer"
+  ],
+  "hvac-cleanroom-technician": [
+    "industrial-facilities-maintenance-technician",
+    "building-automation-systems-technician-bas",
+    "equipment-reliability-engineer"
+  ],
+  "industrial-facilities-maintenance-technician": [
+    "building-automation-systems-technician-bas",
+    "equipment-technician-wafer-fab",
+    "equipment-reliability-engineer",
+    "hvac-cleanroom-technician"
+  ],
+  "ion-implantation-engineer": [
+    "senior-implant-engineer",
+    "senior-deposition-engineer"
+  ],
+  "validation-and-verification-engineer": [
+    "cad-eda-designer",
+    "applications-engineer",
+    "dmf-reliability-engineer"
+  ],
+  "senior-process-development-engineer": [
+    "principal-materials-scientist",
+    "director-of-device-engineering",
+    "principal-design-engineer",
+    "senior-deposition-engineer"
+  ],
+  "lithography-engineer": [
+    "manufacturing-supervisor",
+    "etch-process-engineer",
+    "senior-lithography-engineer",
+    "senior-deposition-engineer",
+    "metrology-inspection-engineer"
+  ],
+  "logistics-coordinator": [
+    "marketing-coordinator",
+    "warehouse-supervisor",
+    "procurement-specialist",
+    "logistics-director"
+  ],
+  "logistics-director": [
+    "director-of-global-supply-chain",
+    "senior-director-of-supply-chain-sourcing",
+    "supply-chain-manager"
+  ],
+  "logistics-operator": [
+    "procurement-assistant",
+    "materials-handler",
+    "shipping-and-receiving-clerk",
+    "inventory-control-clerk"
+  ],
+  "manufacturing-engineer-fab": [
+    "manufacturing-supervisor",
+    "lithography-engineer",
+    "diffusion-furnace-engineer",
+    "failure-analysis-engineer",
+    "packaging-process-engineer"
+  ],
+  "manufacturing-supervisor": [
+    "metrology-inspection-engineer",
+    "senior-deposition-engineer",
+    "director-of-packaging-operations"
+  ],
+  "process-production-operator": [
+    "water-fab-photolithography-technician",
+    "cmp-process-technician",
+    "spc-process-control-technician",
+    "equipment-technician-wafer-fab",
+    "assembly-technician-semiconductor",
+    "test-technician"
+  ],
+  "materials-handler": [
+    "shipping-and-receiving-clerk",
+    "inventory-control-clerk",
+    "packaging-operator"
+  ],
+  "materials-research-associate": [
+    "physical-design-engineer-1",
+    "validation-and-verification-engineer",
+    "materials-scientist"
+  ],
+  "materials-scientist": [
+    "principal-materials-scientist",
+    "dmf-reliability-engineer"
+  ],
+  "metrology-inspection-engineer": [
+    "senior-deposition-engineer",
+    "reliability-test-engineer",
+    "senior-reliability-manager",
+    "director-of-test-engineering"
+  ],
+  "process-maintenance-technician": [
+    "spc-process-control-technician",
+    "cmp-process-technician",
+    "materials-research-associate",
+    "equipment-calibration-technician",
+    "process-production-operator"
+  ],
+  "wet-bench-operator": [
+    "process-production-operator",
+    "spc-process-control-technician",
+    "die-attach-technician",
+    "water-fab-photolithography-technician"
+  ],
+  "warehouse-supervisor": [
+    "director-of-global-supply-chain",
+    "logistics-director",
+    "senior-director-of-supply-chain-sourcing",
+    "director-of-business-operations"
+  ],
+  "packaging-equipment-technician": [
+    "assembly-technician-semiconductor",
+    "wire-bond-technician",
+    "packaging-process-engineer",
+    "quality-control-engineer"
+  ],
+  "packaging-operator": [
+    "die-attach-technician",
+    "packaging-equipment-technician",
+    "test-technician",
+    "wet-bench-operator"
+  ],
+  "packaging-process-engineer": [
+    "automation-robotics-engineer",
+    "failure-analysis-engineer",
+    "reliability-test-engineer",
+    "manufacturing-engineer-fab"
+  ],
+  "physical-design-engineer-1": [
+    "senior-cad-eda-engineer",
+    "packaging-and-randd-engineer",
+    "senior-device-transistor-engineer",
+    "applications-engineer"
+  ],
+  "principal-design-engineer": [
+    "director-of-device-engineering",
+    "director-of-process-randd",
+    "chief-product-architect",
+    "principal-process-integration-engineer",
+    "senior-deposition-engineer"
+  ],
+  "principal-materials-scientist": [
+    "director-of-process-randd",
+    "chief-product-architect"
+  ],
+  "principal-packaging-engineer": [
+    "director-of-packaging-operations",
+    "senior-reliability-manager",
+    "vp-of-packaging-operations",
+    "director-of-test-engineering"
+  ],
+  "principal-process-integration-engineer": [
+    "director-of-wafer-fab-operations",
+    "senior-reliability-manager"
+  ],
+  "director-of-device-engineering": [
+    "principal-design-engineer",
+    "principal-materials-scientist",
+    "director-of-process-randd",
+    "chief-product-architect",
+    "principal-process-integration-engineer"
+  ],
+  "procurement-assistant": [
+    "materials-handler",
+    "shipping-and-receiving-clerk",
+    "procurement-specialist",
+    "logistics-operator"
+  ],
+  "procurement-specialist": [
+    "warehouse-supervisor",
+    "logistics-director",
+    "director-of-global-supply-chain"
+  ],
+  "inventory-control-clerk": [
+    "business-operations-analyst-1",
+    "shipping-and-receiving-clerk",
+    "logistics-coordinator",
+    "marketing-coordinator"
+  ],
+  "quality-control-engineer": [
+    "reliability-test-engineer",
+    "failure-analysis-engineer",
+    "equipment-reliability-engineer"
+  ],
+  "marketing-coordinator": [
+    "warehouse-supervisor",
+    "supply-chain-analyst"
+  ],
+  "randd-lab-technician": [
+    "materials-research-associate",
+    "validation-and-verification-engineer",
+    "process-maintenance-technician"
+  ],
+  "reliability-test-engineer": [
+    "director-of-test-engineering",
+    "senior-reliability-manager",
+    "director-of-packaging-operations"
+  ],
+  "equipment-technician-wafer-fab": [
+    "senior-wafer-fab-equipment-technician",
+    "building-automation-systems-technician-bas",
+    "equipment-reliability-engineer",
+    "equipment-engineer-fab-tools",
+    "controls-automation-engineer",
+    "automation-robotics-engineer"
+  ],
+  "senior-device-transistor-engineer": [
+    "senior-cad-eda-engineer",
+    "senior-process-development-engineer",
+    "principal-materials-scientist",
+    "director-of-device-engineering",
+    "principal-design-engineer"
+  ],
+  "senior-automation-architect": [
+    "senior-equipment-manager",
+    "facilities-manager",
+    "vp-of-plant-operations",
+    "chief-operations-officer",
+    "senior-reliability-manager"
+  ],
+  "senior-equipment-manager": [
+    "facilities-manager",
+    "vp-of-plant-operations",
+    "chief-operations-officer",
+    "senior-director-of-supply-chain-sourcing"
+  ],
+  "senior-implant-engineer": [
+    "senior-deposition-engineer",
+    "senior-lithography-engineer",
+    "principal-process-integration-engineer",
+    "director-of-wafer-fab-operations"
+  ],
+  "senior-lithography-engineer": [
+    "principal-process-integration-engineer",
+    "senior-deposition-engineer",
+    "senior-implant-engineer",
+    "director-of-wafer-fab-operations"
+  ],
+  "senior-cad-eda-engineer": [
+    "senior-process-development-engineer",
+    "director-of-device-engineering",
+    "principal-design-engineer",
+    "senior-deposition-engineer",
+    "principal-materials-scientist"
+  ],
+  "senior-deposition-engineer": [
+    "principal-process-integration-engineer",
+    "senior-reliability-manager",
+    "director-of-wafer-fab-operations",
+    "director-of-process-randd"
+  ],
+  "packaging-and-randd-engineer": [
+    "senior-process-development-engineer",
+    "senior-cad-eda-engineer",
+    "dmf-reliability-engineer",
+    "failure-analysis-engineer",
+    "reliability-test-engineer"
+  ],
+  "senior-reliability-manager": [
+    "vp-of-packaging-operations"
+  ],
+  "senior-wafer-fab-equipment-technician": [
+    "controls-automation-engineer",
+    "automation-robotics-engineer",
+    "equipment-engineer-fab-tools",
+    "senior-equipment-manager"
+  ],
+  "shipping-and-receiving-clerk": [
+    "inventory-control-clerk",
+    "logistics-coordinator",
+    "marketing-coordinator",
+    "procurement-specialist",
+    "warehouse-supervisor"
+  ],
+  "spc-process-control-technician": [
+    "process-production-operator",
+    "process-maintenance-technician",
+    "applications-engineer",
+    "cmp-process-technician",
+    "water-fab-photolithography-technician"
+  ],
+  "supply-chain-analyst": [
+    "warehouse-supervisor",
+    "procurement-specialist",
+    "logistics-director"
+  ],
+  "test-technician": [
+    "equipment-calibration-technician",
+    "assembly-technician-semiconductor",
+    "packaging-equipment-technician",
+    "die-attach-technician",
+    "randd-lab-technician"
+  ],
+  "tool-install-technician": [
+    "cnc-machinist-programmer",
+    "equipment-calibration-technician",
+    "test-technician",
+    "die-attach-technician",
+    "packaging-operator"
+  ],
+  "uhp-orbital-welder": [
+    "equipment-calibration-technician",
+    "test-technician",
+    "equipment-reliability-engineer",
+    "cnc-machinist-programmer"
+  ],
+  "applications-engineer": [
+    "physical-design-engineer-1",
+    "packaging-and-randd-engineer",
+    "dmf-reliability-engineer"
+  ],
+  "vp-of-plant-operations": [
+    "chief-operations-officer",
+    "director-of-business-operations",
+    "supply-chain-manager"
+  ],
+  "water-fab-photolithography-technician": [
+    "cmp-process-technician",
+    "manufacturing-engineer-fab",
+    "diffusion-furnace-engineer",
+    "lithography-engineer"
+  ],
+  "wire-bond-technician": [
+    "assembly-technician-semiconductor",
+    "packaging-equipment-technician",
+    "packaging-process-engineer",
+    "quality-control-engineer"
+  ]
+}

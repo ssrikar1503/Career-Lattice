@@ -1,0 +1,23 @@
+{
+  "additive-manufacturing": {
+    "name": "Additive Manufacturing",
+    "description": "3D printing, metal fabrication, and advanced materials — one of the fastest-growing sectors in U.S. defense, aerospace, and medical manufacturing. 84 roles across 5 clusters.",
+    "color": "#2563eb",
+    "role_count": 84,
+    "pathway_count": 0
+  },
+  "semiconductors": {
+    "name": "Semiconductors",
+    "description": "The full career landscape of semiconductor design, fabrication, and packaging — from wafer fab operators to chip architects, driven by the CHIPS Act and growing US domestic production investment.",
+    "color": "#7c3aed",
+    "role_count": 84,
+    "pathway_count": 0
+  },
+  "space": {
+    "name": "Space Industry",
+    "description": "Spacecraft design, propulsion, launch operations, mission control, and the commercial space economy. 90 roles across 6 clusters.",
+    "color": "#7c3aed",
+    "role_count": 90,
+    "pathway_count": 0
+  }
+}

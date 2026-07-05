@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+/* ── Base ──────────────────────────────────────────────────────────────────── */
+:root {
+  --background: #ffffff;
+  --foreground: #111827;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Accessibility: keyboard focus ─────────────────────────────────────────── */
+/* Only show focus ring when navigating with keyboard, not mouse */
+*:focus {
+  outline: none;
+}
+*:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Screen-reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+.sr-only.focus\:not-sr-only:focus,
+.sr-only.focus\:not-sr-only:focus-visible {
+  position: fixed;
+  width: auto;
+  height: auto;
+  padding: revert;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* ── Typography ─────────────────────────────────────────────────────────────── */
+/* Prevent very long words from breaking layout on mobile */
+p, li, h1, h2, h3, h4 {
+  overflow-wrap: break-word;
+}
+
+/* ── Mobile: prevent horizontal overflow ────────────────────────────────────── */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* ── Map canvas: custom scrollbar (desktop) ─────────────────────────────────── */
+.overflow-auto::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.overflow-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+.overflow-auto::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+.overflow-auto::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* ── Print / Save as PDF ────────────────────────────────────────────────────── */
+@media print {
+  /* Hide all chrome */
+  header, footer, nav, button,
+  .no-print, [role="dialog"] { display: none !important; }
+
+  /* Full-width content */
+  body  { background: white !important; color: black !important; }
+  main  { padding: 0 !important; max-width: 100% !important; }
+
+  /* Show all sections expanded */
+  .print\:block { display: block !important; }
+
+  /* Avoid page breaks inside cards */
+  section, .avoid-break { break-inside: avoid; page-break-inside: avoid; }
+
+  /* Color-safe skill tags */
+  span[class*="bg-"] { border: 1px solid #ccc !important; background: white !important; color: black !important; }
+
+  a { color: black !important; text-decoration: none; }
+  a[href]:after { content: " (" attr(href) ")"; font-size: 10px; color: #666; }
+}
+
+/* ── Career-map: animated path "roads" ─────────────────────────────────────── */
+/* Each <line class="path-chain-draw"> is rendered with
+   stroke-dasharray = stroke-dashoffset = line-length (set inline), so the
+   stroke is initially fully clipped.  This animation eases the offset to 0,
+   which makes the line appear to "draw" itself from source to destination.
+   Triggered every time React re-mounts the element (when the source role
+   changes, the keys change, the elements re-mount, the animation fires). */
+@keyframes path-chain-draw {
+  to { stroke-dashoffset: 0; }
+}
+.path-chain-draw {
+  animation: path-chain-draw 700ms ease-out forwards;
+}
+
+/* ── Keyboard shortcut styling ──────────────────────────────────────────────── */
+kbd {
+  font-family: ui-monospace, monospace;
+  font-size: 0.7em;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: #374151;
+}

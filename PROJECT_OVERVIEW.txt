@@ -1,0 +1,407 @@
+CAREER PATHWAYS PLATFORM
+================================================================
+
+
+WHAT THIS PLATFORM IS
+---------------------
+
+A website that shows people the real career paths available in three
+industries: Additive Manufacturing, Semiconductors, and Space.
+
+For each industry, the site displays a career map. The map shows every
+role in that industry organised by seniority (entry, mid, senior)
+and by area of work (the columns across the top). A visitor can click
+on roles, build their own career chain, see what jobs are open right
+now for any role, and chat with a built-in AI advisor for guidance.
+
+Behind the scenes a separate data pipeline collects job postings from
+real company career boards each week and feeds them into the website.
+Everything is automatic.
+
+
+PART 1 — WHAT THE WEBSITE DOES
+================================================================
+
+The website has three industry sections. Each one works the same way:
+
+
+THE CAREER MAP
+
+The main view is a grid of role cards. Each card shows the role name,
+the typical salary band, and the skills required. The columns group
+roles by area of work. The rows group them by seniority level.
+
+Visitors can:
+
+- Click a role card to start building a career path.
+- Click a connected role to extend the path.
+- See animated lines drawn between the roles they have picked.
+- Click "Clear Map" to start over.
+- Search for any role by name.
+- Tick "Show only hiring" to fade out roles that have no current
+  openings, so the user can focus on what they can actually apply
+  to today.
+
+
+THE ROLE DETAILS VIEW
+
+Clicking the Details button on a role card opens a panel showing:
+
+- Full description of the role
+- Salary range
+- Education required
+- Skills and certifications
+- A list of adjacent roles to consider next
+
+
+THE VIEW OPENINGS PAGE
+
+Clicking the Openings button on a role card opens a dedicated page
+that lists every live job for that role. Each listing shows:
+
+- The hiring company name
+- The actual job title from the company's posting
+- The job location
+- An Apply button that takes the user to the company's own careers
+  site so they can apply directly
+
+THE AI ADVISOR (dolphIQ)
+
+A small chat bubble floats at the bottom right of every map page.
+Visitors can ask things like:
+- "What roles are good for a mechanical engineer switching to space?"
+- "Show me entry level semiconductor jobs."
+- "Compare power electronics engineer and battery design engineer."
+
+The advisor knows about every role in the current industry and can
+cite specific roles in its answers. Clicking on a cited role takes
+the user straight to that role's openings page.
+
+
+THE ADMIN PAGE
+
+A password-protected page at /admin shows job matches that the AI was
+uncertain about. The administrator can approve or reject each one.
+Approved matches contribute to the live job counts shown on the map.
+
+
+SAFETY AND POLISH
+
+- The chat is rate-limited per visitor (15 messages per hour, 80 per
+  day) to keep costs predictable.
+- If the primary AI provider is overloaded, the website automatically
+  falls back to a second or third provider so the chat keeps working.
+- A circuit breaker pauses any provider that fails too many times in
+  a row, then quietly retries it later.
+
+
+SMALL ITEMS STILL ON THE WEBSITE LIST
+
+These are minor items that are pending but do not block using the
+site today. Each one is small in scope.
+
+1. The "Show only hiring" checkbox on the map is mainly there to
+   help us see which roles already have live openings as the
+   matcher fills in over the coming days. It is convenient for the
+   client to use too, but it is not a core feature. If the client
+   prefers not to show it, removing it is a small one-file change.
+
+2. We are planning to add a dropdown filter on the View Openings
+   page that lets the user filter by every country, not only by
+   the countries that currently have postings. Small UI addition,
+   no backend work needed.
+
+3. From here on, most changes are expected to be small value tweaks
+   (a label, a colour, a threshold). We do not expect to need to
+   touch whole files for these. If the client requests changes
+   during review, almost every one should be a few lines at most.
+
+4. There is some unused code left over from earlier prototyping
+   that should be cleaned up — old routes, unused components, dead
+   imports. None of it affects what the user sees. It only matters
+   for keeping the codebase tidy for handover.
+
+5. A few small UI polish items remain — spacing, hover states,
+   typography. These will be picked up during the client review
+   pass as feedback comes in.
+
+
+PART 2 — WHAT THE PIPELINE DOES
+================================================================
+
+The data pipeline runs every Monday on GitHub Actions (free tier).
+It can also be triggered by hand from the GitHub website at any time.
+
+It works in three stages.
+
+
+STAGE 1 — SCRAPING
+
+The pipeline reads from a curated list of 21 companies that operate
+in the three target industries. For each company it knows which job
+board platform they use: Greenhouse, Lever, or Workday.
+
+For each platform the pipeline calls the company's public job board
+API and pulls every open posting. There is no scraping in the
+illegal or fragile sense — every API is a published, public endpoint
+maintained by the platform vendor. The pipeline is polite (one
+second between companies, half a second between pages) and stops
+automatically when it has fetched everything.
+
+For each job it captures the title, the description, the location,
+the company, the source platform, and the unique URL. All of this
+is saved into a table called raw_jobs.
+
+
+THE 21 SOURCES AND HOW MANY JOBS EACH ONE HAS
+
+These are the exact public career boards the pipeline reads from,
+and the number of open postings each one had at our latest run.
+Numbers vary day to day as companies open and close roles.
+
+
+Additive Manufacturing (7 companies, about 1,059 jobs)
+
+   Carbon              https://boards.greenhouse.io/carbon
+                                                              10 jobs
+
+   Markforged          https://boards.greenhouse.io/markforged
+                                                               5 jobs
+
+   Xometry             https://boards.greenhouse.io/xometry
+                                                             269 jobs
+
+   Fictiv              https://boards.greenhouse.io/fictiv
+                                                              74 jobs
+
+   Seurat              https://boards.greenhouse.io/seurat
+                                                               3 jobs
+
+   Protolabs           https://jobs.lever.co/protolabs
+                                                              48 jobs
+
+   HP                  https://hp.wd5.myworkdayjobs.com/en-US/ExternalCareerSite
+                                                             650 jobs
+
+
+Semiconductors (5 companies, about 7,740 jobs)
+
+   Tenstorrent         https://boards.greenhouse.io/tenstorrent
+                                                             121 jobs
+
+   Intel               https://intel.wd1.myworkdayjobs.com/en-US/External
+                                                             659 jobs
+
+   NVIDIA              https://nvidia.wd5.myworkdayjobs.com/en-US/NVIDIAExternalCareerSite
+                                                           2,000 jobs
+
+   Micron              https://micron.wd1.myworkdayjobs.com/en-US/External
+                                                           3,065 jobs
+
+   Applied Materials   https://amat.wd1.myworkdayjobs.com/en-US/External
+                                                           1,895 jobs
+
+
+Space (9 companies, about 6,884 jobs)
+
+   Planet Labs         https://boards.greenhouse.io/planetlabs
+                                                              82 jobs
+
+   Astranis            https://boards.greenhouse.io/astranis
+                                                              89 jobs
+
+   Rocket Lab          https://boards.greenhouse.io/rocketlab
+                                                             332 jobs
+
+   Anduril Industries  https://boards.greenhouse.io/andurilindustries
+                                                           2,075 jobs
+
+   Dawn Aerospace      https://boards.greenhouse.io/dawnaerospace
+                                                              16 jobs
+
+   Momentus            https://boards.greenhouse.io/momentus
+                                                              12 jobs
+
+   Blue Origin         https://blueorigin.wd5.myworkdayjobs.com/en-US/BlueOrigin
+                                                           1,112 jobs
+
+   Boeing              https://boeing.wd1.myworkdayjobs.com/en-US/EXTERNAL_CAREERS
+                                                           1,126 jobs
+
+   Leidos              https://leidos.wd5.myworkdayjobs.com/en-US/External
+                                                           2,000 jobs
+
+
+Grand total at last run: about 15,700 job postings.
+
+
+To add or remove a company in the future, only one small file
+needs to be edited (apps/pipeline/companies.json). The pipeline
+picks up new entries automatically on the next run. No code
+changes required.
+
+
+STAGE 2 — EXTRACTION
+
+Raw job postings are unstructured. They contain a long description
+in HTML with the title, level, location, and skills mentioned in
+free text.
+
+The extraction stage reads each raw posting and produces clean
+structured fields:
+
+- Normalised job title (cleaned up, no location suffix or level
+  number appended)
+- Seniority (entry, mid, senior, or lead) detected from the title
+- Country code (US, GB, IN, DE, and so on) detected from the
+  location text
+- A clean location string
+
+This used to be done by AI, which was slow and ate a lot of free
+quota. It now runs as plain Python rules (regular expressions). It
+processes 15,000 jobs in under a minute and costs nothing.
+
+The results are saved to a table called extracted_jobs.
+
+
+STAGE 3 — MATCHING
+
+This is the only stage that still uses AI. For each extracted job
+the matcher needs to decide:
+
+"Is this job an instance of one of our 158 canonical roles, or is
+it something different that should be set aside for review?"
+
+It works in two passes:
+
+- First a quick non-AI score using title similarity and seniority
+  level, to pick the top three candidate roles.
+- Then the AI is asked to judge whether the top candidate is a
+  match, a new kind of role, or noise that should be rejected.
+
+The AI returns a confidence score between zero and one. The matcher
+routes the result based on confidence:
+
+- 0.80 or higher  →  Auto-approved. Counts immediately appear on
+                     the map for that role.
+- 0.35 to 0.79    →  Pending. Sent to the admin queue for a human
+                     to approve or reject.
+- Below 0.35      →  Rejected. The job is filed and ignored.
+
+The matcher tries Claude first (if a paid Claude key is supplied),
+then Groq, then Gemini. All three have free tiers. When one runs
+out of daily quota a circuit breaker stops trying it and moves on.
+
+
+THE ADMIN QUEUE
+
+Borderline-confidence matches show up at /admin. The administrator
+sees the job side by side with the role the AI thought it might
+be, and approves or rejects with one click. Each decision is logged
+to an audit table.
+
+
+HOW THE TWO PIECES TALK TO EACH OTHER
+================================================================
+
+The website and the pipeline never call each other directly. They
+only share a single Postgres database (hosted on Supabase, free
+tier).
+
+- The pipeline writes to the database (new jobs, new matches).
+- The website reads from the database (counts, openings, hiring
+  companies).
+
+This means either side can be offline without breaking the other.
+If the pipeline fails for a week, the website still works with the
+data it already has. If the website is being redeployed, the
+pipeline still ingests new jobs.
+
+The canonical role catalogue (the 158 roles) is also stored as
+hand-curated JSON files inside the website's source code. The
+website reads those directly so the map loads instantly without
+any database query. The pipeline references the same catalogue
+through the database so it knows what to match against.
+
+
+THE AI PROVIDERS WE USE
+================================================================
+
+The platform never depends on a single AI vendor. Every AI call
+goes through a fallback chain.
+
+Website chat advisor:
+   Claude (Anthropic) → Gemini (Google) → OpenAI
+
+Pipeline matcher:
+   Claude (Anthropic) → Groq → Gemini (Google)
+
+Pipeline extractor:
+   No AI. Pure Python rules.
+
+The client can plug in their own API keys for any of these. If a
+provider runs out of free quota or returns an error, the next one
+takes over automatically. All keys are kept as encrypted secrets
+on Vercel (for the website) and on GitHub (for the pipeline).
+
+
+WHAT THE NUMBERS LOOK LIKE TODAY
+================================================================
+
+As of this handover:
+
+- 158 canonical roles across three industries.
+- About 15,700 real job postings ingested from 21 companies.
+- Every single one of those 15,700 has been extracted into
+  structured form.
+- About 413 of them have been judged by the AI matcher so far. The
+  matcher is rate-limited by the free AI quota; this will grow by
+  roughly 400 each day automatically as the pipeline runs.
+
+Once the matcher has worked through the full backlog (about six
+weeks on free tier, or hours if a paid Claude key is supplied), the
+map will show live live job counts for most of the 158 roles.
+
+
+HOSTING AND DAY-TO-DAY OPERATIONS
+================================================================
+
+- The website is hosted on Vercel. Every commit to the main git
+  branch redeploys automatically. No manual deploy step.
+- The database is hosted on Supabase. Single click to swap to a
+  paid tier if free limits are hit.
+- The pipeline runs on GitHub Actions. The cron is configured to
+  run every Monday at 10:00 UTC. Manual triggers are one click.
+- The administrator only needs to log into /admin once a week to
+  approve or reject the pending matches. About one hour of work
+  per week, expected to decrease as the AI matcher learns the
+  pattern.
+
+There is no server to maintain. There is no database to back up
+(Supabase handles that). There are no servers to patch.
+
+
+WHAT IS NOT INCLUDED IN THIS PROTOTYPE
+================================================================
+
+these were considered out of scope:
+
+- Mobile responsive polish. The map is desktop-first; the mobile
+  view shows a simpler list instead of the visual map.
+- User accounts and login.
+- Error monitoring and analytics (Sentry, PostHog).
+- SEO content pages.
+- Independent expert validation of the role taxonomy.
+
+If the client wants any of these, they are clean to add later
+because the platform is built in modular pieces.
+
+
+SUMMARY
+================================================================
+
+The website is a finished, working prototype that the client can
+demo today. The pipeline is fully wired and ingesting real jobs.
+The two pieces are independent and well-isolated. The platform
+runs entirely on free hosting tiers and can grow as needed by
+swapping in paid API keys when the client is ready.
