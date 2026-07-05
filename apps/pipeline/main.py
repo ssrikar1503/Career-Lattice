@@ -135,16 +135,18 @@ def run(
         log.info("STEP 2 — Skipped (--skip-extract)")
 
     # ── Step 3+4: Match & Route ───────────────────────────────────────────────
-    # Matcher uses AI per judgment. Daily free-tier token quota (Groq + Gemini)
-    # is the real cap — the circuit breaker in provider_state.py stops the loop
-    # cleanly when quotas are exhausted. So we set batch_size high and let the
-    # breaker do its job rather than pre-capping the batch artificially.
+    # Matcher spends one paid AI call per judgment, so the per-industry batch
+    # is capped to bound cost per run (MATCHER_BATCH_SIZE env var to override).
+    # ~700 jobs/industry ≈ 2,000 judgments/run ≈ $1-2 on Haiku. The backlog
+    # drains across weekly runs; the free-tier circuit breaker in
+    # provider_state.py still stops the loop cleanly if quotas are exhausted.
+    matcher_batch = int(os.environ.get("MATCHER_BATCH_SIZE", "700"))
     if not skip_match:
         log.info("=" * 50)
         log.info("STEP 3+4 — Ontology Matcher + Routing")
         all_stats = {"matched": 0, "pending": 0, "rejected": 0}
         for industry in target:
-            stats = run_matcher(supabase, anthropic, industry, batch_size=10000)
+            stats = run_matcher(supabase, anthropic, industry, batch_size=matcher_batch)
             for k in all_stats:
                 all_stats[k] += stats.get(k, 0)
         log.info(f"Matcher done: {all_stats}")

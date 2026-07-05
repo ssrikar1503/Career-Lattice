@@ -31,23 +31,13 @@ GEMINI_PACE_SECONDS = 3.0
 
 SENIORITY_RANK = {"entry": 0, "mid": 1, "senior": 2, "lead": 3}
 
-MATCH_PROMPT = """You are an expert workforce taxonomist. Decide whether a scraped job posting matches a canonical career role.
+MATCH_PROMPT = """Does this job posting match this canonical career role?
 
-CANONICAL ROLE:
-Title: {role_title}
-Cluster: {role_cluster}
-Seniority: {role_seniority}
-Skills: {role_skills}
+ROLE: {role_title} | {role_cluster} | {role_seniority} | skills: {role_skills}
+JOB: {job_title} | {job_seniority}
+DESCRIPTION: {job_description}
 
-SCRAPED JOB:
-Normalized title: {job_title}
-Seniority: {job_seniority}
-Description excerpt: {job_description}
-
-Rules:
-- "match" = this job is clearly an instance of the canonical role (same function, similar level)
-- "new_role" = this job represents a real role that doesn't exist in our taxonomy
-- "noise" = not relevant to the industry, a stretch match, or too ambiguous to classify
+"match" = same function and similar level. "new_role" = real role missing from taxonomy. "noise" = irrelevant, stretch, or ambiguous.
 
 Respond with ONLY a JSON object, no explanation:
 {{"verdict": "match"|"new_role"|"noise", "confidence": 0.0-1.0, "reason": "one sentence"}}"""
@@ -128,8 +118,8 @@ def _parse_judgment(text: str) -> dict | None:
 
 def _judge_with_claude(prompt: str, client: Anthropic) -> dict | None:
     message = client.messages.create(
-        model="claude-sonnet-4-6",  # Sonnet for accuracy on judgment calls
-        max_tokens=200,
+        model="claude-haiku-4-5",  # cheapest model — 3x cheaper than Sonnet per token
+        max_tokens=100,
         messages=[{"role": "user", "content": prompt}],
     )
     return _parse_judgment(message.content[0].text)
@@ -245,13 +235,13 @@ def claude_judge(
     # title. 600 chars keeps token cost low; the description's first paragraph
     # is usually a role summary which is what we want.
     raw_description = ((extracted_job.get("raw_jobs") or {}).get("raw_description") or "")
-    description_excerpt = raw_description.strip()[:600]
+    description_excerpt = raw_description.strip()[:300]
 
     prompt = MATCH_PROMPT.format(
         role_title=candidate_role.get("title", ""),
         role_cluster=candidate_role.get("cluster", ""),
         role_seniority=candidate_role.get("seniority", ""),
-        role_skills=", ".join(candidate_role.get("skills", [])[:8]),
+        role_skills=", ".join(candidate_role.get("skills", [])[:6]),
         job_title=extracted_job.get("normalized_title", ""),
         job_seniority=extracted_job.get("seniority", ""),
         job_description=description_excerpt or "(no description available)",
