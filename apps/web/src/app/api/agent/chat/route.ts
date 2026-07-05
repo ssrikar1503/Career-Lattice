@@ -40,7 +40,17 @@ function buildContext(data: IndustryData): string {
   return `=== ${data.industry.name} Roles ===\n${roles}\n\n=== Career Pathways ===\n${pathways}`;
 }
 
-function buildSystemPrompt(context: string, industryName: string): string {
+function buildSystemPrompt(context: string, industryName: string, selectedPath?: string): string {
+  const pathSection = selectedPath
+    ? `\n\nUSER'S SELECTED PATH:
+The user has currently built this career path on the map (in order):
+${selectedPath}
+When they say "my path", "this path", or "my selection", they mean these roles. Ground path-specific answers (skill gaps, timelines, salary progression, next steps) in this exact sequence.`
+    : '';
+  return buildSystemPromptBase(context, industryName) + pathSection;
+}
+
+function buildSystemPromptBase(context: string, industryName: string): string {
   return `You are dolphIQ — an AI career guide for the ${industryName} industry. Your name combines "dolphin" (one of the most intelligent species on Earth and a navigator of unfamiliar waters) with "IQ" (intelligence). You help students, workers, and career changers navigate roles, required skills, salary expectations, and career pathways.
 
 IDENTITY:
@@ -129,7 +139,7 @@ export async function POST(request: Request) {
   }
 
   // ── 2. Parse and validate request ──────────────────────────────────────────
-  let body: { message: string; industry: string; history: Array<{ role: 'user' | 'assistant'; content: string }> };
+  let body: { message: string; industry: string; history: Array<{ role: 'user' | 'assistant'; content: string }>; path?: string[] };
   try {
     body = await request.json();
   } catch {
@@ -148,7 +158,18 @@ export async function POST(request: Request) {
   // ── 3. Build context and messages ──────────────────────────────────────────
   const data    = INDUSTRY_MAP[industry];
   const context = buildContext(data);
-  const system  = buildSystemPrompt(context, data.industry.name);
+
+  // Selected path: role IDs the user clicked on the map. Only IDs that exist
+  // in this industry's taxonomy are accepted (drops junk/stale/foreign IDs).
+  const roleById = new Map(data.roles.map(r => [r.id, r]));
+  const pathIds  = Array.isArray(body.path)
+    ? body.path.filter((id): id is string => typeof id === 'string' && roleById.has(id)).slice(0, 12)
+    : [];
+  const selectedPath = pathIds.length > 0
+    ? pathIds.map(id => `[${id}] ${roleById.get(id)!.title}`).join(' → ')
+    : undefined;
+
+  const system = buildSystemPrompt(context, data.industry.name, selectedPath);
 
   // Keep last 8 turns to control token cost
   const messages = [

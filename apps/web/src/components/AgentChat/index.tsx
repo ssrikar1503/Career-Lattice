@@ -111,6 +111,13 @@ export default function AgentChat({ data }: Props) {
         content: m.content,
       }));
 
+      // The map keeps the selected path in the URL (?path=am-r-01,am-r-05).
+      // Read it at send time so dolphIQ can answer questions about "my path".
+      const path = (new URLSearchParams(window.location.search).get('path') ?? '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+
       const res = await fetch('/api/agent/chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -118,6 +125,7 @@ export default function AgentChat({ data }: Props) {
           message:  text.trim(),
           industry: data.industry.slug,
           history,
+          ...(path.length > 0 ? { path } : {}),
         }),
         signal: abortRef.current.signal,
       });
