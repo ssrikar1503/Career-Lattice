@@ -137,10 +137,12 @@ def run(
     # ── Step 3+4: Match & Route ───────────────────────────────────────────────
     # Matcher spends one paid AI call per judgment, so the per-industry batch
     # is capped to bound cost per run (MATCHER_BATCH_SIZE env var to override).
-    # ~700 jobs/industry ≈ 2,000 judgments/run ≈ $1-2 on Haiku. The backlog
-    # drains across weekly runs; the free-tier circuit breaker in
-    # provider_state.py still stops the loop cleanly if quotas are exhausted.
-    matcher_batch = int(os.environ.get("MATCHER_BATCH_SIZE", "700"))
+    # Budget target: a full run stays under $5. On Haiku with the compressed
+    # prompt each judgment is ~$0.0006, so 2,000 jobs/industry ≈ 6,000
+    # judgments ≈ $3.50/run. Scrape + extract are free (no AI). The free-tier
+    # circuit breaker in provider_state.py still stops the loop cleanly if
+    # quotas are exhausted.
+    matcher_batch = int(os.environ.get("MATCHER_BATCH_SIZE", "2000"))
     if not skip_match:
         log.info("=" * 50)
         log.info("STEP 3+4 — Ontology Matcher + Routing")
