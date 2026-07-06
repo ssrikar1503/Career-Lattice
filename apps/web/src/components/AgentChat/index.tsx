@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 import type { IndustryData } from '@/lib/types';
 import DolphIQIcon, { DolphIQWordmark } from '../DolphIQIcon';
 
@@ -60,7 +61,33 @@ function RichText({ text, data }: { text: string; data: IndustryData }) {
 const FALLBACK_MSG =
   'dolphIQ is not available right now. Make sure at least one AI provider key is set in .env.local and restart the dev server.';
 
+// ── PATH: line protocol ────────────────────────────────────────────────────────
+// When the user describes their current situation, dolphIQ ends its reply with
+// a machine-readable line like "PATH: am-r-07, am-r-12, am-r-21". The line is
+// stripped from the displayed text and turned into a "Show on map" action that
+// rewrites ?path= — CareerMap watches the URL and lights the path up.
+
+/** Remove a trailing PATH: line (even a partially streamed one) from display text. */
+function stripPathLine(text: string): string {
+  return text.replace(/\n?\s*PATH:[^\n]*\s*$/i, '').trimEnd();
+}
+
+/** Extract validated role IDs from a completed message's PATH: line. */
+function parsePathLine(text: string, validIds: Set<string>): string[] {
+  const m = text.match(/^PATH:\s*(.+?)\s*$/im);
+  if (!m) return [];
+  const ids = m[1]
+    .split(/[,→>\s]+/)
+    .map(s => s.trim().replace(/^\[|\]$/g, ''))
+    .filter(Boolean)
+    .filter(id => validIds.has(id));
+  // Dedupe while preserving order; require at least one real role.
+  return [...new Set(ids)].slice(0, 12);
+}
+
 export default function AgentChat({ data }: Props) {
+  const router   = useRouter();
+  const pathname = usePathname();
   const [open,       setOpen]       = useState(false);
   const [messages,   setMessages]   = useState<Message[]>([]);
   const [input,      setInput]      = useState('');
@@ -69,6 +96,20 @@ export default function AgentChat({ data }: Props) {
   const bottomRef   = useRef<HTMLDivElement>(null);
   const inputRef    = useRef<HTMLTextAreaElement>(null);
   const abortRef    = useRef<AbortController | null>(null);
+
+  const validIds = useMemo(() => new Set(data.roles.map(r => r.id)), [data.roles]);
+
+  /** Apply a dolphIQ-recommended path to the career map by rewriting ?path=.
+   *  CareerMap watches the URL, so the chain + career strip light up live.
+   *  window.location is read at click time (same pattern as sendMessage) to
+   *  avoid useSearchParams, which would need a Suspense boundary here. */
+  const applyPath = useCallback((ids: string[]) => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete('role');
+    params.set('path', ids.join(','));
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    document.getElementById('career-map')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [router, pathname]);
 
   // Load suggested prompts
   useEffect(() => {
@@ -343,7 +384,32 @@ export default function AgentChat({ data }: Props) {
                 >
                   {msg.role === 'assistant' && !msg.error ? (
                     <>
-                      <RichText text={msg.content || '…'} data={data} />
+                      <RichText text={stripPathLine(msg.content) || '…'} data={data} />
+                      {/* "Show on map" action — appears when a completed reply
+                          carried a PATH: line with real role IDs */}
+                      {(() => {
+                        const isStreamingThis =
+                          streaming && msg.id === messages[messages.length - 1]?.id;
+                        if (isStreamingThis) return null;
+                        const ids = parsePathLine(msg.content, validIds);
+                        if (ids.length === 0) return null;
+                        return (
+                          <button
+                            onClick={() => applyPath(ids)}
+                            className="mt-2.5 w-full flex items-center justify-center gap-1.5
+                                       rounded-xl px-3 py-2 text-xs font-semibold text-white
+                                       hover:opacity-90 active:scale-[0.98] transition
+                                       focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                            style={{ backgroundColor: data.industry.color }}
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            Show this path on the map ({ids.length} roles)
+                          </button>
+                        );
+                      })()}
                       {/* Provider badge — tiny, subtle */}
                       {msg.provider && msg.content && (
                         <span className="block text-[9px] text-gray-600 mt-1.5 select-none">

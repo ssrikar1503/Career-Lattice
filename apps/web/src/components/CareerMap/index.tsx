@@ -79,6 +79,26 @@ export default function CareerMap({ data }: Props) {
     [anyCounts],
   );
 
+  // Keep the path in sync with the URL after mount. The initializer above only
+  // runs once, so anything that rewrites ?path= later — dolphIQ applying a
+  // recommended path, or browser back/forward on a shared link — must be
+  // mirrored here. The string-compare guard makes the map's own syncUrl()
+  // round-trip a no-op, so user clicks don't loop through this effect.
+  useEffect(() => {
+    const raw = searchParams.get('path');
+    const ids = raw !== null
+      ? raw.split(',').map(s => s.trim()).filter(id => roleById.has(id))
+      : (() => {
+          const single = searchParams.get('role');
+          return single && roleById.has(single) ? [single] : [];
+        })();
+    setSelectedIds(prev => {
+      if (prev.join(',') === ids.join(',')) return prev;
+      setLastClickDirection(null);
+      return ids;
+    });
+  }, [searchParams, roleById]);
+
   // Set of role IDs that should be dimmed (half-opacity) when the "Show only
   // hiring" filter is on — roles whose worldwide open-jobs count is zero.
   // Dim instead of hide so the map layout stays stable: gaps in the grid
@@ -270,7 +290,7 @@ export default function CareerMap({ data }: Props) {
     : `${selectedIds.length} Jobs Selected`;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div id="career-map" className="flex flex-col gap-4">
 
       {/* Intro + instructions block (reference layout: heading + 3-step list on left, search on right) */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">

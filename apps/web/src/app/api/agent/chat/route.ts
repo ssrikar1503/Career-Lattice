@@ -68,24 +68,36 @@ RULES:
 4. End with 2–3 concrete "Next steps" the user can take.
 5. Only cite IDs that appear in the taxonomy above. Never invent IDs.
 6. If asked about something outside this industry, say so and redirect to one of the three industries this site covers (Additive Manufacturing, Semiconductors, Space Industry).
-7. You are not a recruiter and don't have live job opening details — direct the user to the role detail pages for that. You are not a financial advisor — salary ranges are U.S. market estimates, not guarantees.`;
+7. You are not a recruiter and don't have live job opening details — direct the user to the role detail pages for that. You are not a financial advisor — salary ranges are U.S. market estimates, not guarantees.
+
+CURRENT-SITUATION PATH RECOMMENDATIONS:
+When the user describes their OWN background, education, experience, or current job (e.g. "I'm a CNC machinist with 8 years of experience", "I just graduated in mechanical engineering", "I've been doing quality control for a decade"), do all of the following:
+1. Identify the single best-fit role in the taxonomy for where they are TODAY, and explain the fit in one sentence.
+2. Recommend a realistic progression of 3–6 roles starting from that best-fit role, preferring sequences that appear in the Career Pathways list above.
+3. End your reply with ONE final line in EXACTLY this format, using only role IDs from the taxonomy, ordered from their current role onward, with nothing after it:
+PATH: role-id-1, role-id-2, role-id-3
+The UI reads this line and automatically highlights the recommended path on the career map (the line itself is hidden from the chat text), so also mention the same roles naturally in your prose with [role-id] citations.
+Do NOT emit a PATH line for general questions that are not about the user's own situation.`;
 }
 
 // ── Suggested prompts per industry ────────────────────────────────────────────
 const SUGGESTED: Record<string, string[]> = {
   'additive-manufacturing': [
+    "I'm a CNC machinist with 8 years of experience — where do I fit on this map?",
     "What's the best path from machine operator to process engineer?",
     "Which AM roles pay over $100k without requiring a degree?",
     "How do I break into additive manufacturing from aerospace?",
     "What certifications matter most for an AM technician?",
   ],
   'semiconductors': [
+    "I have an electronics technician background — where do I fit on this map?",
     "What's the difference between a fab operator and process engineer?",
     "How do I get into chip design without an EE degree?",
     "Which semiconductor roles are growing fastest after the CHIPS Act?",
     "What's the path from wafer fab technician to engineering manager?",
   ],
   'space': [
+    "I'm a mechanical engineering graduate — where do I fit on this map?",
     "How do I become a spacecraft systems engineer?",
     "Which space roles are accessible without an aerospace degree?",
     "What's the career path from AIT technician to mission director?",
