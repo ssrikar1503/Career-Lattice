@@ -14,6 +14,7 @@
 import type { IndustryData } from '@/lib/types';
 import { streamWithFallback } from '@/lib/ai-providers';
 import { checkRateLimit, LIMITS, getClientIp } from '@/lib/rate-limit';
+import { getLiveOpeningsBlock } from '@/lib/live-openings';
 
 import amData    from '@/data/additive-manufacturing.json';
 import semiData  from '@/data/semiconductors.json';
@@ -40,14 +41,18 @@ function buildContext(data: IndustryData): string {
   return `=== ${data.industry.name} Roles ===\n${roles}\n\n=== Career Pathways ===\n${pathways}`;
 }
 
-function buildSystemPrompt(context: string, industryName: string, selectedPath?: string): string {
+function buildSystemPrompt(context: string, industryName: string, selectedPath?: string, openingsBlock?: string): string {
   const pathSection = selectedPath
     ? `\n\nUSER'S SELECTED PATH:
 The user has currently built this career path on the map (in order):
 ${selectedPath}
 When they say "my path", "this path", or "my selection", they mean these roles. Ground path-specific answers (skill gaps, timelines, salary progression, next steps) in this exact sequence.`
     : '';
-  return buildSystemPromptBase(context, industryName) + pathSection;
+  const openingsSection = openingsBlock
+    ? `\n\n${openingsBlock}
+Use this data when asked about current job openings — how many there are, which companies are hiring, and where. It refreshes weekly from real company job boards, so qualify counts with "as of this week". A role absent from this list has no verified openings right now — say that plainly instead of guessing. For the full listings with application links, tell the user to click the role on the map and open its openings page. Openings answers follow the same formatting rules as everything else: plain conversational sentences, NO markdown bold/headings/bullets.`
+    : '';
+  return buildSystemPromptBase(context, industryName) + openingsSection + pathSection;
 }
 
 function buildSystemPromptBase(context: string, industryName: string): string {
@@ -68,7 +73,7 @@ RULES:
 4. End with 2–3 concrete "Next steps" the user can take.
 5. Only cite IDs that appear in the taxonomy above. Never invent IDs.
 6. If asked about something outside this industry, say so and redirect to one of the three industries this site covers (Additive Manufacturing, Semiconductors, Space Industry).
-7. You are not a recruiter and don't have live job opening details — direct the user to the role detail pages for that. You are not a financial advisor — salary ranges are U.S. market estimates, not guarantees.
+7. If a LIVE JOB OPENINGS section is present below, use it for questions about current openings (counts, companies, locations); otherwise say live data is temporarily unavailable and direct the user to the role detail pages. You are not a recruiter — for full listings and applications, point to the role's openings page. You are not a financial advisor — salary ranges are U.S. market estimates, not guarantees.
 
 CURRENT-SITUATION PATH RECOMMENDATIONS:
 When the user describes their OWN background, education, experience, or current job (e.g. "I'm a CNC machinist with 8 years of experience", "I just graduated in mechanical engineering", "I've been doing quality control for a decade"), do all of the following:
@@ -181,7 +186,11 @@ export async function POST(request: Request) {
     ? pathIds.map(id => `[${id}] ${roleById.get(id)!.title}`).join(' → ')
     : undefined;
 
-  const system = buildSystemPrompt(context, data.industry.name, selectedPath);
+  // Live openings digest from the pipeline's database (60s cache, fail-soft
+  // to '' when the DB is unreachable — chat still works on taxonomy alone).
+  const openingsBlock = await getLiveOpeningsBlock(industry, data.roles);
+
+  const system = buildSystemPrompt(context, data.industry.name, selectedPath, openingsBlock);
 
   // Keep last 8 turns to control token cost
   const messages = [
