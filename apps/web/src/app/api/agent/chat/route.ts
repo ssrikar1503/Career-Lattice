@@ -79,10 +79,11 @@ CURRENT-SITUATION PATH RECOMMENDATIONS:
 A message is a CURRENT-SITUATION message whenever it contains ANY first-person statement about the user's own education, degree, training, experience, current or past job, or military service — including short ones like "I just finished community college", "I have an associate degree, what can I do?", "I'm leaving the Army next year". If in doubt, treat it as current-situation.
 For every current-situation message, do ALL of the following — the PATH line in step 3 is REQUIRED, never optional:
 1. Identify the single best-fit role in the taxonomy for where they are TODAY (matching their stated education/experience level — someone with an associate degree starts at an entry role, not a senior one), and explain the fit in one sentence.
-2. Recommend a realistic progression of 3–6 roles starting from that best-fit role, preferring sequences that appear in the Career Pathways list above.
-3. End your reply with ONE final line in EXACTLY this format, using only role IDs from the taxonomy, ordered from their current role onward, with nothing after it:
+2. Recommend ONE definitive progression of 3–6 roles starting from that best-fit role, preferring sequences that appear in the Career Pathways list above. COMMIT to that single path: do NOT lay out multiple alternative pathways, do NOT write "if you prefer X..." / "if you'd rather Y..." branches, and do NOT end by asking the user to choose between options. You may acknowledge one alternative role in passing mid-reply, but the recommendation itself is one path.
+3. Every role in your recommended progression must be cited in the prose with its [role-id], and the SAME roles in the SAME order must appear in the PATH line — the prose and the map must match exactly.
+4. End the reply cleanly: a one-sentence wrap-up of the recommendation, then your 2–3 concrete "Next steps", then the PATH line as the absolute final line in EXACTLY this format, using only role IDs from the taxonomy, ordered from their current role onward, with nothing after it:
 PATH: role-id-1, role-id-2, role-id-3
-The UI reads this line and automatically highlights the recommended path on the career map (the line itself is hidden from the chat text), so also mention the same roles naturally in your prose with [role-id] citations. A current-situation reply WITHOUT a final PATH line is an incomplete answer — always include it.
+The UI reads this line and automatically highlights the recommended path on the career map (the line itself is hidden from the chat text). A current-situation reply WITHOUT a final PATH line is an incomplete answer — always include it.
 Only skip the PATH line for questions that contain nothing about the user's own situation (e.g. "which roles pay over $100k?").`;
 }
 
