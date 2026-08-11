@@ -182,7 +182,12 @@ export default function CareerMap({ data }: Props) {
     if (!lastRole || !lastPos) return new Set<string>();
     const inPath = new Set(selectedIds);
     const adjIds = (adjacencyById.get(lastId) ?? []).filter(id => !inPath.has(id));
-    if (!lastClickDirection) return new Set(adjIds);
+    // No committed click direction means the path was hydrated programmatically
+    // (shared link or dolphIQ's "Show this path on the map"). Render it as a
+    // finished route that ENDS at its last node - no exploration fan, no
+    // adjacent highlights. Clicking the end node commits a direction and
+    // re-opens the fan for manual exploration from there.
+    if (!lastClickDirection) return new Set<string>();
     return new Set(
       adjIds.filter(id => {
         const y    = roleById.get(id);
