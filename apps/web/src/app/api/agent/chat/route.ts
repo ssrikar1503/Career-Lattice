@@ -89,26 +89,28 @@ Only skip the PATH line for questions that contain nothing about the user's own 
 
 // ── Suggested prompts per industry ────────────────────────────────────────────
 const SUGGESTED: Record<string, string[]> = {
+  // Ordered constructively: orient first, then explore facts, then live
+  // market data, and finally the personal scenario that draws a path.
   'additive-manufacturing': [
-    "I'm a CNC machinist with 8 years of experience — where do I fit on this map?",
-    "What's the best path from machine operator to process engineer?",
+    "What kinds of careers does additive manufacturing offer?",
+    "What's the difference between a machine operator and a process engineer?",
     "Which AM roles pay over $100k without requiring a degree?",
-    "How do I break into additive manufacturing from aerospace?",
-    "What certifications matter most for an AM technician?",
+    "Which AM roles are actually hiring right now, and where?",
+    "I'm a CNC machinist with 8 years of experience. Where do I fit on this map?",
   ],
   'semiconductors': [
-    "I have an electronics technician background — where do I fit on this map?",
-    "What's the difference between a fab operator and process engineer?",
+    "How is the semiconductor industry organized? What career tracks exist?",
+    "What's the difference between a fab operator and a process engineer?",
     "How do I get into chip design without an EE degree?",
-    "Which semiconductor roles are growing fastest after the CHIPS Act?",
-    "What's the path from wafer fab technician to engineering manager?",
+    "Which semiconductor roles have the most openings this week?",
+    "I have an associate degree in electronics. Where do I fit on this map?",
   ],
   'space': [
-    "I'm a mechanical engineering graduate — where do I fit on this map?",
-    "How do I become a spacecraft systems engineer?",
+    "What kinds of careers exist in the space industry?",
     "Which space roles are accessible without an aerospace degree?",
-    "What's the career path from AIT technician to mission director?",
     "Which propulsion roles pay over $150k?",
+    "Who is hiring flight software engineers right now, and where?",
+    "I'm an electronics technician leaving the military next year. Where do I fit?",
   ],
 };
 
