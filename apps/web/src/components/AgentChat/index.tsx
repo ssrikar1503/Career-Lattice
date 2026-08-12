@@ -72,17 +72,34 @@ function stripPathLine(text: string): string {
   return text.replace(/\n?\s*PATH:[^\n]*\s*$/i, '').trimEnd();
 }
 
-/** Extract validated role IDs from a completed message's PATH: line. */
-function parsePathLine(text: string, validIds: Set<string>): string[] {
-  const m = text.match(/^PATH:\s*(.+?)\s*$/im);
-  if (!m) return [];
-  const ids = m[1]
+const INDUSTRY_NAMES: Record<string, string> = {
+  'additive-manufacturing': 'Additive Manufacturing',
+  'semiconductors': 'Semiconductors',
+  'space': 'Space Industry',
+};
+
+/** Extract the recommended path from a completed message's PATH: line.
+ *  Cross-domain format: "PATH: space | sp-r-01, sp-r-02". The slug may be
+ *  omitted (legacy replies) — then the current map's industry is assumed.
+ *  Same-industry IDs are validated against the loaded taxonomy; other-industry
+ *  IDs are shape-checked only (the target map drops unknown IDs on load). */
+function parsePathLine(
+  text: string,
+  validIds: Set<string>,
+  currentSlug: string,
+): { slug: string; ids: string[] } | null {
+  const m = text.match(/^PATH:\s*(?:([a-z][a-z-]*)\s*\|)?\s*(.+?)\s*$/im);
+  if (!m) return null;
+  const slug = m[1] && INDUSTRY_NAMES[m[1]] ? m[1] : currentSlug;
+  let ids = m[2]
     .split(/[,→>\s]+/)
     .map(s => s.trim().replace(/^\[|\]$/g, ''))
-    .filter(Boolean)
-    .filter(id => validIds.has(id));
-  // Dedupe while preserving order; require at least one real role.
-  return [...new Set(ids)].slice(0, 12);
+    .filter(Boolean);
+  ids = slug === currentSlug
+    ? ids.filter(id => validIds.has(id))
+    : ids.filter(id => /^[a-z0-9][a-z0-9-]{1,60}$/.test(id));
+  const deduped = [...new Set(ids)].slice(0, 12);
+  return deduped.length > 0 ? { slug, ids: deduped } : null;
 }
 
 export default function AgentChat({ data }: Props) {
@@ -391,11 +408,18 @@ export default function AgentChat({ data }: Props) {
                         const isStreamingThis =
                           streaming && msg.id === messages[messages.length - 1]?.id;
                         if (isStreamingThis) return null;
-                        const ids = parsePathLine(msg.content, validIds);
-                        if (ids.length === 0) return null;
+                        const parsed = parsePathLine(msg.content, validIds, data.industry.slug);
+                        if (!parsed) return null;
+                        const crossMap = parsed.slug !== data.industry.slug;
                         return (
                           <button
-                            onClick={() => applyPath(ids)}
+                            onClick={() => {
+                              if (crossMap) {
+                                router.push(`/${parsed.slug}?path=${parsed.ids.join(',')}`);
+                              } else {
+                                applyPath(parsed.ids);
+                              }
+                            }}
                             className="mt-2.5 w-full flex items-center justify-center gap-1.5
                                        rounded-xl px-3 py-2 text-xs font-semibold text-white
                                        hover:opacity-90 active:scale-[0.98] transition
@@ -406,7 +430,9 @@ export default function AgentChat({ data }: Props) {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                 d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                             </svg>
-                            Show this path on the map ({ids.length} roles)
+                            {crossMap
+                              ? `Show this path on the ${INDUSTRY_NAMES[parsed.slug]} map (${parsed.ids.length} roles)`
+                              : `Show this path on the map (${parsed.ids.length} roles)`}
                           </button>
                         );
                       })()}
