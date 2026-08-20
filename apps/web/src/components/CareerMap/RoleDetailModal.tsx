@@ -7,7 +7,7 @@ import { CLUSTER_COLORS, formatSalary } from './constants';
 
 interface Props {
   role:    Role | null;
-  /** Worldwide approved-match count — drives the "View live openings" button. */
+  /** Worldwide approved-match count - drives the "View live openings" button. */
   anyCount?: number;
   /** Industry slug, for routing to /[industry]/role/[id]/openings. */
   industrySlug?: string;
@@ -30,15 +30,15 @@ const TIER_LABEL: Record<string, string> = {
 };
 
 /**
- * Role detail modal — Critical Materials reference layout.
+ * Role detail modal - Critical Materials reference layout.
  *
  * Sections butt edge-to-edge; visual separation comes from background color
  * only (no inter-section margins, no borders). Vertical order:
- *   1. Colored band   — cluster chip + role title + tier label
- *   2. Two-col area   — description (white) + meta sidebar (cluster tint,
+ *   1. Colored band   - cluster chip + role title + tier label
+ *   2. Two-col area   - description (white) + meta sidebar (cluster tint,
  *                       flush to band top and to the modal's right edge)
- *   3. Skills strip   — single subtle near-white-gray fill, no row stripes
- *   4. Certs + CTA    — white
+ *   3. Skills strip   - single subtle near-white-gray fill, no row stripes
+ *   4. Certs + CTA    - white
  */
 export default function RoleDetailModal({ role, anyCount, industrySlug, onClose }: Props) {
   if (!role) {
@@ -49,7 +49,7 @@ export default function RoleDetailModal({ role, anyCount, industrySlug, onClose 
   const clusterColor = CLUSTER_COLORS[role.cluster];
   const bandHex      = clusterColor?.band ?? '#374151';
   const tintHex      = clusterColor?.tint ?? '#e5e7eb';
-  const degreeLabel  = DEGREE_LABEL[role.degree_required] ?? '—';
+  const degreeLabel  = DEGREE_LABEL[role.degree_required] ?? '-';
   const payText      = role.salary_range || `${formatSalary(role.salary_min, role.salary_max)} / year`;
   const tierLabel    = TIER_LABEL[role.seniority] ?? '';
 
@@ -65,7 +65,7 @@ export default function RoleDetailModal({ role, anyCount, industrySlug, onClose 
       noPadding
       closeButtonClass="text-white hover:text-white hover:bg-white/20"
     >
-      {/* 1. Colored band — cluster chip on top, role title + tier label below. */}
+      {/* 1. Colored band - cluster chip on top, role title + tier label below. */}
       <div
         className="rounded-t-lg px-7 pt-5 pb-6 pr-16"
         style={{ backgroundColor: bandHex }}
@@ -84,7 +84,7 @@ export default function RoleDetailModal({ role, anyCount, industrySlug, onClose 
         )}
       </div>
 
-      {/* 2. Two-column area — sidebar flush with band top and right edge. */}
+      {/* 2. Two-column area - sidebar flush with band top and right edge. */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
         <div className="md:col-span-2 px-7 pt-7 pb-8 bg-white">
           {role.description && (
@@ -154,7 +154,7 @@ export default function RoleDetailModal({ role, anyCount, industrySlug, onClose 
         </aside>
       </div>
 
-      {/* 3. Skills strip — one single near-white-gray fill, no row stripes. */}
+      {/* 3. Skills strip - one single near-white-gray fill, no row stripes. */}
       {role.skills.length > 0 && (
         <div className="px-7 pt-7 pb-8" style={{ backgroundColor: skillsBgHex }}>
           <div className="flex items-center gap-2.5 mb-4">
@@ -176,7 +176,7 @@ export default function RoleDetailModal({ role, anyCount, industrySlug, onClose 
         </div>
       )}
 
-      {/* 4. Certifications + CTA — white background, last block of the modal. */}
+      {/* 4. Certifications + CTA - white background, last block of the modal. */}
       {(role.certifications.length > 0 || (worldwideCount > 0 && industrySlug)) && (
         <div className="px-7 pt-7 pb-8 bg-white">
           {role.certifications.length > 0 && (

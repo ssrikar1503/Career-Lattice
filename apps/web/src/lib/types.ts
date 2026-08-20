@@ -23,10 +23,10 @@ export interface Role {
   seniority: SeniorityLevel;
   salary_min: number;
   salary_max: number;
-  /** Exact salary string from client research, e.g. "$65,000 - $80,000". Optional — falls back to formatSalary(min,max) when absent. */
+  /** Exact salary string from client research, e.g. "$65,000 - $80,000". Optional - falls back to formatSalary(min,max) when absent. */
   salary_range?: string;
   degree_required: DegreeLevel;
-  /** Long-form degree expectation, e.g. "Yes — BS Mechanical Eng" or "Sometimes — Associate/cert preferred". Optional. */
+  /** Long-form degree expectation, e.g. "Yes - BS Mechanical Eng" or "Sometimes - Associate/cert preferred". Optional. */
   degree_detail?: string;
   /** Typical years of experience, e.g. "0-2 years" or "10+ years". Optional. */
   experience?: string;

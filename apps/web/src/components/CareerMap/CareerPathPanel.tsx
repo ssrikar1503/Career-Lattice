@@ -9,10 +9,10 @@ interface Props {
 }
 
 /**
- * Simplified "Your Career Path" panel — matches the Critical Materials reference site.
+ * Simplified "Your Career Path" panel - matches the Critical Materials reference site.
  *
  * Each row is a bullet (cluster color), role title, tier badge, salary on a second line.
- * No step numbers, no remove buttons, no cluster name text — the visual chain is the map
+ * No step numbers, no remove buttons, no cluster name text - the visual chain is the map
  * itself. Click-to-truncate (Phase J9) replaces the explicit remove button.
  *
  * Save & Share + Clear actions live in the map's chrome above the panel (Phase J2), not here.

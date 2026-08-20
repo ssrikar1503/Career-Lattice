@@ -1,6 +1,6 @@
 /**
- * POST /api/admin/auth   — sign in with password
- * DELETE /api/admin/auth — sign out
+ * POST /api/admin/auth   - sign in with password
+ * DELETE /api/admin/auth - sign out
  *
  * Security: brute-force protection via per-IP rate limit (5 attempts per 15 min).
  * After 5 failed attempts an IP is locked out and gets a friendly retry message.
@@ -9,7 +9,7 @@ import { cookies } from 'next/headers';
 import { ADMIN_COOKIE_NAME, ADMIN_COOKIE_VALUE } from '@/lib/admin-auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
-// Tight limit for login — brute force protection
+// Tight limit for login - brute force protection
 const LOGIN_LIMIT = { windowMs: 15 * 60 * 1000, maxRequests: 5 };
 
 export async function POST(request: Request) {
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     secure:   process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge:   60 * 60 * 12, // 12 hours
-    path:     '/', // must include /api/admin/* — not just /admin
+    path:     '/', // must include /api/admin/* - not just /admin
   });
 
   return Response.json({ ok: true });

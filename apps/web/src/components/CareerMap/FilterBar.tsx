@@ -7,7 +7,7 @@ interface Props {
 
 /**
  * Reference-site search box. The earlier degree/cluster dropdowns were
- * stripped during Phase J polish — kept the search alone to match the
+ * stripped during Phase J polish - kept the search alone to match the
  * minimalism of the Critical Materials reference. Bigger and more
  * prominent than the previous compact filter row.
  */
@@ -37,7 +37,7 @@ export default function FilterBar({ searchQuery, onSearch }: Props) {
             onClick={() => onSearch('')}
             className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full text-gray-400 hover:text-gray-700
                        hover:bg-gray-100 flex items-center justify-center text-lg leading-none
-                       focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                       focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F]"
             aria-label="Clear search"
           >
             ×

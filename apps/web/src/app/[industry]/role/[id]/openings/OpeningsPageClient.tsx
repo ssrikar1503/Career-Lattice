@@ -5,7 +5,7 @@ import type { Role } from '@/lib/types';
 import RoleDetailModal from '@/components/CareerMap/RoleDetailModal';
 
 /**
- * Phase 5 — Openings page client.
+ * Phase 5 - Openings page client.
  * Renders the country dropdown + filtered job list, plus a "Role details"
  * button that opens the same modal that appears on the map. All filtering
  * happens in the browser because per-role job counts are small.
@@ -59,7 +59,7 @@ const SOURCE_BADGE: Record<string, { label: string; cls: string }> = {
 
 export default function OpeningsPageClient({ openings, roleTitle, role }: Props) {
   const [detailsOpen, setDetailsOpen] = useState(false);
-  // Build the country options dynamically — only show countries that actually
+  // Build the country options dynamically - only show countries that actually
   // have postings for this role. Sorted with US first, then alpha.
   const countryOptions = useMemo(() => {
     const counts = new Map<string, number>();
@@ -92,7 +92,7 @@ export default function OpeningsPageClient({ openings, roleTitle, role }: Props)
     return openings.filter(o => o.country === country);
   }, [openings, country]);
 
-  // Shared role-details button — same UX on full state and empty state
+  // Shared role-details button - same UX on full state and empty state
   const roleDetailsButton = (
     <button
       type="button"
@@ -100,13 +100,13 @@ export default function OpeningsPageClient({ openings, roleTitle, role }: Props)
       className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide
                  px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700
                  hover:bg-gray-50 transition-colors
-                 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F]"
     >
       Role details
     </button>
   );
 
-  // Empty state — no openings at all for this role yet
+  // Empty state - no openings at all for this role yet
   if (openings.length === 0) {
     return (
       <>
@@ -141,7 +141,7 @@ export default function OpeningsPageClient({ openings, roleTitle, role }: Props)
                 value={country}
                 onChange={e => setCountry(e.target.value)}
                 className="rounded border border-gray-300 bg-white px-2 py-1.5 text-sm
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F]"
                 aria-label="Filter openings by country"
               >
                 <option value="all">All countries ({openings.length})</option>
@@ -217,8 +217,8 @@ export default function OpeningsPageClient({ openings, roleTitle, role }: Props)
                     rel="noopener noreferrer"
                     className="flex-shrink-0 inline-flex items-center justify-center gap-1.5
                                px-4 py-2 rounded-lg text-sm font-semibold text-white
-                               bg-gray-900 hover:bg-gray-700 transition-colors
-                               focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
+                               bg-[#500000] hover:bg-[#6d1f1f] transition-colors
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B7791F]"
                   >
                     Apply at source
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none"

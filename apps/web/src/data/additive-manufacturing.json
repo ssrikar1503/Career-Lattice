@@ -3,8 +3,8 @@
     "id": "additive-manufacturing",
     "name": "Additive Manufacturing",
     "slug": "additive-manufacturing",
-    "description": "3D printing, metal fabrication, and advanced materials — one of the fastest-growing sectors in U.S. defense, aerospace, and medical manufacturing. 84 roles across 5 clusters.",
-    "color": "#2563eb"
+    "description": "3D printing, metal fabrication, and advanced materials - one of the fastest-growing sectors in U.S. defense, aerospace, and medical manufacturing. 84 roles across 5 clusters.",
+    "color": "#500000"
   },
   "clusters": [
     "Design & Engineering",
@@ -3757,7 +3757,7 @@
         },
         {
           "name": "Non-Destructive Testing Evaluation",
-          "description": "You assess NDT data—such as CT scanning or ultrasonic testing—to verify the internal integrity of printed parts. This ensures that hidden defects are identified before components reach final certification."
+          "description": "You assess NDT data, such as CT scanning or ultrasonic testing, to verify the internal integrity of printed parts. This ensures that hidden defects are identified before components reach final certification."
         }
       ],
       "certifications": [],

@@ -3,8 +3,8 @@
     "id": "semiconductors",
     "name": "Semiconductors",
     "slug": "semiconductors",
-    "description": "The full career landscape of semiconductor design, fabrication, and packaging — from wafer fab operators to chip architects, driven by the CHIPS Act and growing US domestic production investment.",
-    "color": "#7c3aed"
+    "description": "The full career landscape of semiconductor design, fabrication, and packaging - from wafer fab operators to chip architects, driven by the CHIPS Act and growing US domestic production investment.",
+    "color": "#500000"
   },
   "clusters": [
     "Research, Design & Engineering",

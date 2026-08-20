@@ -49,9 +49,9 @@ interface Props {
 /**
  * The "roads" drawn between role nodes when a path is being built.
  *
- *  • Committed segments — solid lines between consecutive roles in
+ *  • Committed segments - solid lines between consecutive roles in
  *    selectedPath.  These represent the path the user has built.
- *  • Exploration fan — animated lines from the LAST selected role to each
+ *  • Exploration fan - animated lines from the LAST selected role to each
  *    of its (not-already-in-path) adjacent roles.  These animate in via
  *    stroke-dashoffset so they look like roads "drawing themselves" to
  *    the possible next steps.
@@ -125,7 +125,7 @@ export default function PathChain({
       style={{ overflow: 'visible', zIndex: 25 }}
       aria-hidden="true"
     >
-      {/* Committed segments — gray, solid, no animation. Previously-walked
+      {/* Committed segments - gray, solid, no animation. Previously-walked
           edges fade back; only the current exploration fan stays white. */}
       {committedSegments.map(seg => (
         <line
@@ -138,7 +138,7 @@ export default function PathChain({
         />
       ))}
 
-      {/* Exploration fan — animated draw via stroke-dashoffset.
+      {/* Exploration fan - animated draw via stroke-dashoffset.
           Each line's `style` sets the initial dasharray = length so the CSS
           animation can ease dashoffset from length → 0. */}
       {explorationSegments.map(seg => (

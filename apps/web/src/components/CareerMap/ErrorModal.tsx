@@ -5,7 +5,7 @@ import Modal from '../Modal';
 interface Props {
   open:    boolean;
   onClose: () => void;
-  /** Optional override — defaults to the verbatim reference-site copy. */
+  /** Optional override - defaults to the verbatim reference-site copy. */
   message?: string;
 }
 

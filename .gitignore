@@ -55,3 +55,4 @@ from_client/
 /LICENSE
 /docs/
 /client_docs/
+.env*

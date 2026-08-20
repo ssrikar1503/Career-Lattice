@@ -93,7 +93,7 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
 
 // ── Match row ──────────────────────────────────────────────────────────────────
 // `bucket` controls which action button(s) appear: each tab shows only the
-// transition that actually changes the status — Pending shows both; Approved
+// transition that actually changes the status - Pending shows both; Approved
 // shows only Reject (demote); Rejected shows only Approve (rescue). This
 // kills the historical double-click-on-approved bug at the UI surface.
 function MatchRow({
@@ -161,7 +161,7 @@ function MatchRow({
         )}
       </div>
 
-      {/* Approve / Reject — only the actionable transition for this tab */}
+      {/* Approve / Reject - only the actionable transition for this tab */}
       <div className="flex gap-2 flex-shrink-0">
         {showApprove && (
           <button
@@ -338,7 +338,7 @@ export default function AdminClient({ isAuthed: initAuthed }: { isAuthed: boolea
           </div>
         )}
 
-        {/* Tabs — every tab shows its own count badge from the API response */}
+        {/* Tabs - every tab shows its own count badge from the API response */}
         <div className="flex gap-2 mb-6">
           {TABS.map(t => {
             const active = t === tab;
@@ -363,7 +363,7 @@ export default function AdminClient({ isAuthed: initAuthed }: { isAuthed: boolea
           })}
         </div>
 
-        {/* Confidence legend — thresholds match matcher.py's routing rules. */}
+        {/* Confidence legend - thresholds match matcher.py's routing rules. */}
         {tab === 'pending' && (
           <div className="flex items-center gap-4 mb-5 text-xs text-gray-500">
             <span className="font-semibold">Confidence:</span>

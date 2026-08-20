@@ -15,7 +15,7 @@ import { checkRateLimit, getClientIp, LIMITS } from '@/lib/rate-limit';
  *   • approved → pending/rejected   →  open_jobs_count -= 1 (clamped at 0)
  *   • same status → no count change (still writes the audit row)
  *
- * Company list is APPEND-ONLY on demote — once a company has hired for a
+ * Company list is APPEND-ONLY on demote - once a company has hired for a
  * role we leave it in hiring_companies even if the specific match is
  * demoted. The worldwide view live-queries role_matches anyway; only the
  * US-cached fast path consumes this list, and stale entries there are
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     return Response.json({ error: matchErr.message }, { status: 500 });
   }
 
-  // Always record the human decision — even no-op same-status clicks, since
+  // Always record the human decision - even no-op same-status clicks, since
   // the audit log is a record of human review, not of count changes.
   await supabase.from('review_decisions').insert({
     match_id:   matchId,
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     decision,
   });
 
-  // Count math — only US jobs feed the cached open_jobs_count column.
+  // Count math - only US jobs feed the cached open_jobs_count column.
   // Worldwide view live-aggregates from role_matches and is unaffected.
   if (!roleId || country !== 'US') {
     return Response.json({ ok: true });

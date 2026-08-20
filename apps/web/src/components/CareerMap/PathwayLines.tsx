@@ -31,7 +31,7 @@ function makePath(a: CardPosition, b: CardPosition): string {
 export default function PathwayLines({
   roles, pathways, positions, highlightedPathwayIds, hasSelection, width, height, industryColor,
 }: Props) {
-  void roles; // accept the prop but currently unused — kept for API stability with future pathway labels
+  void roles; // accept the prop but currently unused - kept for API stability with future pathway labels
 
   const lines: Array<{
     id: string;

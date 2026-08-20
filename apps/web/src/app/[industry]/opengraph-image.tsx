@@ -4,7 +4,7 @@ import { ImageResponse } from 'next/og';
 // 1 MB+ industry JSONs. Edge functions on Vercel's Hobby plan cap at 1 MB
 // of bundled code/data, so we cannot ship the full taxonomy into this route.
 // Keep industry-meta.json in sync with the source JSONs when adding industries
-// (regenerate via scripts/gen-industry-meta.py — or just edit by hand).
+// (regenerate via scripts/gen-industry-meta.py - or just edit by hand).
 import meta from '@/data/industry-meta.json';
 
 interface IndustryMeta {
@@ -27,7 +27,7 @@ export default async function OGImage({
   const { industry: slug } = await params;
   const entry = (meta as Record<string, IndustryMeta>)[slug];
 
-  const name        = entry?.name          ?? 'Career Pathways';
+  const name        = entry?.name          ?? 'Career Lattice';
   const description = entry?.description   ?? '';
   const color       = entry?.color         ?? '#2563eb';
   const roleCount   = entry?.role_count    ?? 0;
@@ -57,7 +57,7 @@ export default async function OGImage({
           letterSpacing: '0.1em', textTransform: 'uppercase',
           marginBottom: 32,
         }}>
-          Career Pathways Platform
+          Career Lattice | Texas A&M Engineering
         </div>
 
         {/* Industry name */}

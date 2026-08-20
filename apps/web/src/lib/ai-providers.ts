@@ -51,7 +51,7 @@ class CircuitBreaker {
   canAttempt(): boolean {
     if (this.state === 'closed')     return true;
     if (this.state === 'half-open')  return true; // one trial allowed
-    // OPEN state — check if reset timeout has passed
+    // OPEN state - check if reset timeout has passed
     if (Date.now() - this.lastFail > RESET_TIMEOUT_MS) {
       this.state = 'half-open';
       return true;
@@ -223,15 +223,15 @@ export async function streamWithFallback(options: ChatOptions): Promise<StreamRe
   // KEY INSIGHT: provider.stream() returns a generator instantly without
   // making any API calls. The actual API call (and any rate-limit error)
   // happens on the first `await gen.next()`. So we MUST prime the generator
-  // here — pull the first chunk — to know whether the provider really worked.
+  // here - pull the first chunk - to know whether the provider really worked.
   // If priming fails, we fall over to the next provider. Once we have a
   // first chunk, we're committed to this provider for the rest of the stream.
   const lastErrors: string[] = [];
 
   for (const provider of available) {
     if (!provider.breaker.canAttempt()) {
-      // Circuit is OPEN — skip this provider entirely
-      console.warn(`[ai-providers] ${provider.name} circuit OPEN — skipping`);
+      // Circuit is OPEN - skip this provider entirely
+      console.warn(`[ai-providers] ${provider.name} circuit OPEN - skipping`);
       lastErrors.push(`${provider.name}: circuit open`);
       continue;
     }
@@ -253,10 +253,10 @@ export async function streamWithFallback(options: ChatOptions): Promise<StreamRe
         `(breaker: ${provider.breaker.getState()}, fallback: ${shouldFallback}): ${msg}`
       );
       if (shouldFallback) continue; // try next provider
-      throw err;                    // non-retriable — bubble up
+      throw err;                    // non-retriable - bubble up
     }
 
-    // Provider worked — record success and return a wrapped stream that
+    // Provider worked - record success and return a wrapped stream that
     // replays the buffered first chunk, then continues with the rest.
     provider.breaker.onSuccess();
     console.log(`[ai-providers] using ${provider.name}`);
@@ -272,7 +272,7 @@ export async function streamWithFallback(options: ChatOptions): Promise<StreamRe
 }
 
 // Replays the primed first chunk (if any) and then yields the rest of the
-// stream. Mid-stream errors are still caught here — at that point we've
+// stream. Mid-stream errors are still caught here - at that point we've
 // already started sending to the client and can't switch providers, so the
 // stream just ends gracefully.
 async function* replayThenContinue(
@@ -291,7 +291,7 @@ async function* replayThenContinue(
   } catch (err) {
     breaker.onFailure();
     console.warn(`[ai-providers] ${name} mid-stream error:`, (err as Error)?.message);
-    // Don't rethrow — the stream is already partially delivered; just end it
+    // Don't rethrow - the stream is already partially delivered; just end it
   }
 }
 

@@ -7,7 +7,7 @@ import { checkRateLimit, getClientIp, LIMITS } from '@/lib/rate-limit';
  *
  * Returns one page of role_matches in the requested status (default
  * pending), plus per-status counts so the admin UI can show totals on
- * every tab — not just the active one.
+ * every tab - not just the active one.
  *
  * Page size is 20. Pagination is 1-indexed in the query string and
  * 0-indexed for the Supabase .range() call.

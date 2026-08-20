@@ -37,7 +37,7 @@ export default function CareerMap({ data }: Props) {
 
   const roleById = useMemo(() => new Map(roles.map(r => [r.id, r])), [roles]);
 
-  // Path chain — hydrated from ?path=am-r-01,am-r-05 on first render.
+  // Path chain - hydrated from ?path=am-r-01,am-r-05 on first render.
   const [selectedIds, setSelectedIds] = useState<string[]>(() => {
     const raw = searchParams.get('path');
     if (!raw) {
@@ -55,11 +55,11 @@ export default function CareerMap({ data }: Props) {
   //   'up'   → diverge (edges fan OUT to higher / same-row-higher adjacents)
   //   'down' → converge (edges flow IN from lower / same-row-lower adjacents)
   // Equal-salary same-row adjacents (midpoints within $1000) show in both
-  // modes — but only when the source role sits in a middle seniority row.
+  // modes - but only when the source role sits in a middle seniority row.
   const [lastClickDirection, setLastClickDirection] = useState<'up' | 'down' | null>(null);
-  // Phase 5 — worldwide counts drive the Openings button on every role card
+  // Phase 5 - worldwide counts drive the Openings button on every role card
   // AND the modal's hiring CTA. Default-worldwide means we don't need a
-  // separate US-cached fetch anymore — country filtering lives on the
+  // separate US-cached fetch anymore - country filtering lives on the
   // /openings page where the user picks a specific country if they want.
   const [anyCounts, setAnyCounts] = useState<LiveCounts>({});
 
@@ -70,7 +70,7 @@ export default function CareerMap({ data }: Props) {
       .then((data: LiveCounts) => {
         if (!cancelled) setAnyCounts(data || {});
       })
-      .catch(() => { /* silent — UI just shows "No openings" buttons */ });
+      .catch(() => { /* silent - UI just shows "No openings" buttons */ });
     return () => { cancelled = true; };
   }, [industry.slug]);
 
@@ -80,8 +80,8 @@ export default function CareerMap({ data }: Props) {
   );
 
   // Keep the path in sync with the URL after mount. The initializer above only
-  // runs once, so anything that rewrites ?path= later — dolphIQ applying a
-  // recommended path, or browser back/forward on a shared link — must be
+  // runs once, so anything that rewrites ?path= later - dolphIQ applying a
+  // recommended path, or browser back/forward on a shared link - must be
   // mirrored here. The string-compare guard makes the map's own syncUrl()
   // round-trip a no-op, so user clicks don't loop through this effect.
   useEffect(() => {
@@ -100,7 +100,7 @@ export default function CareerMap({ data }: Props) {
   }, [searchParams, roleById]);
 
   // Set of role IDs that should be dimmed (half-opacity) when the "Show only
-  // hiring" filter is on — roles whose worldwide open-jobs count is zero.
+  // hiring" filter is on - roles whose worldwide open-jobs count is zero.
   // Dim instead of hide so the map layout stays stable: gaps in the grid
   // would be more disorienting than a faded card. Empty set when toggle off.
   const dimmedByHiringFilter = useMemo(() => {
@@ -108,7 +108,7 @@ export default function CareerMap({ data }: Props) {
     return new Set(roles.filter(r => getAnyCount(r.title) === 0).map(r => r.id));
   }, [showOnlyHiring, roles, getAnyCount]);
 
-  // Counts shown next to the filter label — "Show only hiring (84/158)".
+  // Counts shown next to the filter label - "Show only hiring (84/158)".
   // Uses worldwide counts that the map already fetched.
   const hiringCount = useMemo(
     () => roles.filter(r => getAnyCount(r.title) > 0).length,
@@ -118,7 +118,7 @@ export default function CareerMap({ data }: Props) {
   const layout = useMemo(() => computeLayout(roles), [roles]);
   const { positions, totalWidth, totalHeight, rowStartY, rowBandHeight, colW: COL_W } = layout;
 
-  // Global vertical extents — used to decide which role circles are at the
+  // Global vertical extents - used to decide which role circles are at the
   // absolute top / bottom of the map. Only those suppress one direction of
   // arrows; every other role (even other "Senior" or "Entry" stack rows)
   // gets both up and down arrows.
@@ -146,7 +146,7 @@ export default function CareerMap({ data }: Props) {
   }, [roles, searchQuery]);
 
   /** Adjacency map { roleId → next-step role IDs } sourced from role.adjacent_role_ids
-   *  and symmetrized — if X lists Y as an adjacent, Y also gets X. The curated
+   *  and symmetrized - if X lists Y as an adjacent, Y also gets X. The curated
    *  JSONs (Semi entirely, half of Space) only encode one direction of each
    *  pairing, so without mirroring those columns' senior cells would never
    *  converge to their mid/entry counterparts even though the relationship is
@@ -227,7 +227,7 @@ export default function CareerMap({ data }: Props) {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }, [searchParams, router, pathname]);
 
-  /** Single-click — only manages the path; never wipes it accidentally:
+  /** Single-click - only manages the path; never wipes it accidentally:
    *    • path empty                                   → start path with this role
    *    • role is in current possible-next (adjacent) → append to path
    *    • role already in the path                     → truncate path to end here
@@ -259,7 +259,7 @@ export default function CareerMap({ data }: Props) {
     // Off-list → no-op. Use double-tap to clear if you want to start over.
   }, [selectedIds, selectedIdSet, possibleNextIds, syncUrl]);
 
-  /** Double-click anywhere — clears the entire path. */
+  /** Double-click anywhere - clears the entire path. */
   const handleRoleDoubleClick = useCallback(() => {
     setSelectedIds([]);
     setLastClickDirection(null);
@@ -333,7 +333,7 @@ export default function CareerMap({ data }: Props) {
           }}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-gray-300 bg-white
                      text-gray-700 hover:bg-gray-50 transition-colors
-                     focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                     focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F]"
         >
           See related learning paths below
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -349,7 +349,7 @@ export default function CareerMap({ data }: Props) {
           disabled={selectedIds.length === 0}
           className="inline-flex items-center gap-1.5 text-gray-600 hover:text-gray-900 disabled:opacity-40
                      disabled:cursor-not-allowed transition-colors uppercase font-semibold tracking-wide text-xs
-                     focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+                     focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F] rounded"
         >
           Clear Map
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -369,7 +369,7 @@ export default function CareerMap({ data }: Props) {
         />
       </div>
 
-      {/* DESKTOP: interactive map canvas (no outer scroll wrapper — the
+      {/* DESKTOP: interactive map canvas (no outer scroll wrapper - the
           layout engine sizes COL_W to fit the page container exactly). */}
       <div className="hidden md:block">
         <div
@@ -380,7 +380,7 @@ export default function CareerMap({ data }: Props) {
           onDoubleClick={handleRoleDoubleClick}
         >
             {/* Per-tier tints: each column's hue, darkest at Senior (top) and
-                progressively lighter going down. Continuous bands — no white
+                progressively lighter going down. Continuous bands - no white
                 gap between tiers; the visual separation is the horizontal
                 divider lines drawn further down. */}
             {clusters.map((cluster, i) => {
@@ -398,7 +398,7 @@ export default function CareerMap({ data }: Props) {
               const entryTop     = midBottom;
               const entryBottom  = totalHeight - OUTER_PAD;
 
-              // Alpha hex per tier — change these three to tune the gradient.
+              // Alpha hex per tier - change these three to tune the gradient.
               // 'FF' = fully opaque, '00' = invisible.
               const tints = [
                 { key: 'senior', top: seniorTop, height: seniorBottom - seniorTop, alpha: 'BF' }, // ~75% darkest
@@ -421,7 +421,7 @@ export default function CareerMap({ data }: Props) {
               ));
             })}
 
-            {/* Cluster headers — solid colored band, uppercase white text */}
+            {/* Cluster headers - solid colored band, uppercase white text */}
             <div
               className="absolute top-0 flex"
               style={{ left: LEFT_W, height: HEADER_H, width: totalWidth - LEFT_W - OUTER_PAD }}
@@ -460,7 +460,7 @@ export default function CareerMap({ data }: Props) {
               );
             })}
 
-            {/* Vertical column dividers — soft black line between columns. */}
+            {/* Vertical column dividers - soft black line between columns. */}
             {clusters.map((_, i) => {
               if (i === 0) return null;
               return (
@@ -477,7 +477,7 @@ export default function CareerMap({ data }: Props) {
               );
             })}
 
-            {/* Vertical gutter divider — separates the "Senior/Mid/Entry"
+            {/* Vertical gutter divider - separates the "Senior/Mid/Entry"
                 row labels (left side) from the role cells. */}
             <div
               className="absolute bg-black/15"
@@ -489,7 +489,7 @@ export default function CareerMap({ data }: Props) {
               }}
             />
 
-            {/* Horizontal tier dividers — between Senior/Mid and Mid/Entry. */}
+            {/* Horizontal tier dividers - between Senior/Mid and Mid/Entry. */}
             {(['mid', 'entry'] as const).map(seniority => {
               const row = SENIORITY_TO_ROW[seniority];
               const y   = rowStartY[row] - ROW_GAP / 2;
@@ -507,31 +507,31 @@ export default function CareerMap({ data }: Props) {
               );
             })}
 
-            {/* 6-edge polygon outer border — fully closes the top-left notch.
+            {/* 6-edge polygon outer border - fully closes the top-left notch.
                 Outer perimeter: top (above cluster header), right, bottom, left
                 (beside role cells). Inner L: top of row-label gutter (edge 5)
                 and left of column-header strip (edge 6) meet at (LEFT_W, HEADER_H)
                 to close the notch.                                              */}
-            {/* edge 1 — outer top */}
+            {/* edge 1 - outer top */}
             <div className="absolute bg-black/40"
                  style={{ left: LEFT_W,  top: 0, width: (totalWidth - OUTER_PAD) - LEFT_W, height: 1 }} />
-            {/* edge 2 — outer right */}
+            {/* edge 2 - outer right */}
             <div className="absolute bg-black/40"
                  style={{ left: totalWidth - OUTER_PAD - 0.5, top: 0, width: 1, height: totalHeight - OUTER_PAD }} />
-            {/* edge 3 — outer bottom */}
+            {/* edge 3 - outer bottom */}
             <div className="absolute bg-black/40"
                  style={{ left: 0, top: totalHeight - OUTER_PAD - 0.5, width: totalWidth - OUTER_PAD, height: 1 }} />
-            {/* edge 4 — outer left */}
+            {/* edge 4 - outer left */}
             <div className="absolute bg-black/40"
                  style={{ left: 0, top: HEADER_H, width: 1, height: (totalHeight - OUTER_PAD) - HEADER_H }} />
-            {/* edge 5 — inner horizontal (top of row-label gutter) */}
+            {/* edge 5 - inner horizontal (top of row-label gutter) */}
             <div className="absolute bg-black/40"
                  style={{ left: 0, top: HEADER_H - 0.5, width: LEFT_W, height: 1 }} />
-            {/* edge 6 — inner vertical (left of column-header strip) */}
+            {/* edge 6 - inner vertical (left of column-header strip) */}
             <div className="absolute bg-black/40"
                  style={{ left: LEFT_W - 0.5, top: 0, width: 1, height: HEADER_H }} />
 
-            {/* SVG pathway lines (curated learning pathways — empty for Semi after the
+            {/* SVG pathway lines (curated learning pathways - empty for Semi after the
                 84-role reference migration; the curated pathways are AM/Space only). */}
             <PathwayLines
               roles={roles}
@@ -598,7 +598,7 @@ export default function CareerMap({ data }: Props) {
             disabled={selectedIds.length === 0}
             className="inline-flex items-center gap-1.5 text-gray-600 hover:text-gray-900 disabled:opacity-40
                        disabled:cursor-not-allowed transition-colors uppercase font-semibold tracking-wide
-                       focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+                       focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F] rounded"
           >
             Clear Map
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -608,7 +608,7 @@ export default function CareerMap({ data }: Props) {
           </button>
         </div>
 
-        {/* Save & Share CTA bar — matches reference site styling */}
+        {/* Save & Share CTA bar - matches reference site styling */}
         <div className="mt-6 border-t border-gray-200 pt-5 flex items-center justify-end gap-3 flex-wrap">
           <span className="text-sm italic text-gray-600">
             Build a Career Path with the map, then <span aria-hidden="true">→</span>
@@ -626,13 +626,13 @@ export default function CareerMap({ data }: Props) {
           </button>
         </div>
 
-        {/* Your Career Path panel — simplified display only (Phase J5) */}
+        {/* Your Career Path panel - simplified display only (Phase J5) */}
         <CareerPathPanel
           selectedIds={selectedIds}
           roleById={roleById}
         />
 
-        {/* Learning paths anchor — Phase J4 will populate; placeholder for "See related learning paths below" link */}
+        {/* Learning paths anchor - Phase J4 will populate; placeholder for "See related learning paths below" link */}
         <div id="learning-paths" className="mt-12 pt-8 border-t border-gray-100">
           <p className="text-xs text-gray-400 italic">
             Related learning paths will be added in a future update.
@@ -640,7 +640,7 @@ export default function CareerMap({ data }: Props) {
         </div>
       </div>
 
-      {/* Modals (Phase J4 + J6) — controlled by state above */}
+      {/* Modals (Phase J4 + J6) - controlled by state above */}
       <SaveShareModal open={saveOpen}  onClose={() => setSaveOpen(false)} />
       <ErrorModal     open={errorOpen} onClose={() => setErrorOpen(false)} />
       <RoleDetailModal

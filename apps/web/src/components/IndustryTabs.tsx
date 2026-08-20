@@ -16,10 +16,10 @@ export default function IndustryTabs({ industryName }: Props) {
 
   return (
     <>
-      <div className="border-b border-gray-200 mb-10 flex items-center gap-6">
+      <div className="border-b border-[#e8ddcf] mb-10 flex items-center gap-6">
         <button
           type="button"
-          className="pb-3 text-sm font-semibold text-gray-900 border-b-2 border-gray-900"
+          className="pb-3 text-sm font-semibold text-[#500000] border-b-2 border-[#B7791F]"
           aria-current="page"
         >
           Build your Path
@@ -27,8 +27,8 @@ export default function IndustryTabs({ industryName }: Props) {
         <button
           type="button"
           onClick={() => setAboutOpen(true)}
-          className="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors
-                     focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+          className="pb-3 text-sm font-semibold text-gray-500 hover:text-[#500000] transition-colors
+                     focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F] rounded"
           aria-haspopup="dialog"
         >
           About this Map / FAQs

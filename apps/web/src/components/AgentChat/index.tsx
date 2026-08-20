@@ -19,10 +19,10 @@ interface Props {
 }
 
 // ── Parse [role-id] citations into clickable links ────────────────────────────
-// Phase 4 — broadened regex to match Semi's descriptive IDs like
+// Phase 4 - broadened regex to match Semi's descriptive IDs like
 // [chief-product-architect] in addition to the original [am-r-21] / [space-r-03]
 // patterns. The captured ID is validated against roleById before being treated
-// as a citation — any [foo-bar] that doesn't resolve to a real role falls back
+// as a citation - any [foo-bar] that doesn't resolve to a real role falls back
 // to plain inline text, so over-matching is safe.
 function RichText({ text, data }: { text: string; data: IndustryData }) {
   const roleById = new Map(data.roles.map(r => [r.id, r]));
@@ -40,7 +40,7 @@ function RichText({ text, data }: { text: string; data: IndustryData }) {
               <Link
                 key={i}
                 href={`/${data.industry.slug}/role/${role.id}/openings`}
-                className="font-semibold text-blue-400 hover:text-blue-300 hover:underline"
+                className="font-semibold text-[#500000] underline decoration-[#B7791F] hover:text-[#7a2222]"
                 target="_blank"
               >
                 {role.title}
@@ -48,7 +48,7 @@ function RichText({ text, data }: { text: string; data: IndustryData }) {
             );
           }
           // Brackets that don't resolve to a real role render as plain text
-          // — no blue highlight, so dolphIQ's prose still reads cleanly even
+          // - no blue highlight, so dolphIQ's prose still reads cleanly even
           // when the model invents an ID or formats a non-citation bracket.
           return <span key={i}>{part}</span>;
         }
@@ -59,13 +59,13 @@ function RichText({ text, data }: { text: string; data: IndustryData }) {
 }
 
 const FALLBACK_MSG =
-  'dolphIQ is not available right now. Make sure at least one AI provider key is set in .env.local and restart the dev server.';
+  'Rev is not available right now. Make sure at least one AI provider key is set in .env.local and restart the dev server.';
 
 // ── PATH: line protocol ────────────────────────────────────────────────────────
 // When the user describes their current situation, dolphIQ ends its reply with
 // a machine-readable line like "PATH: am-r-07, am-r-12, am-r-21". The line is
 // stripped from the displayed text and turned into a "Show on map" action that
-// rewrites ?path= — CareerMap watches the URL and lights the path up.
+// rewrites ?path= - CareerMap watches the URL and lights the path up.
 
 /** Remove a trailing PATH: line (even a partially streamed one) from display text. */
 function stripPathLine(text: string): string {
@@ -80,7 +80,7 @@ const INDUSTRY_NAMES: Record<string, string> = {
 
 /** Extract the recommended path from a completed message's PATH: line.
  *  Cross-domain format: "PATH: space | sp-r-01, sp-r-02". The slug may be
- *  omitted (legacy replies) — then the current map's industry is assumed.
+ *  omitted (legacy replies) - then the current map's industry is assumed.
  *  Same-industry IDs are validated against the loaded taxonomy; other-industry
  *  IDs are shape-checked only (the target map drops unknown IDs on load). */
 function parsePathLine(
@@ -280,59 +280,61 @@ export default function AgentChat({ data }: Props) {
 
   return (
     <>
-      {/* Floating toggle button — dolphIQ identity */}
+      {/* Floating toggle button - Rev identity */}
       <button
         onClick={() => setOpen(o => !o)}
-        aria-label={open ? 'Close dolphIQ' : 'Open dolphIQ — your career guide'}
+        aria-label={open ? 'Close Rev' : 'Open Rev - your career guide'}
         aria-expanded={open}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3
-                   rounded-2xl text-white font-semibold text-sm shadow-xl
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 pl-2.5 pr-4 py-2
+                   rounded-full bg-white text-[#500000] font-semibold text-sm shadow-xl
+                   border-2 border-[#500000]
                    hover:scale-105 active:scale-95 transition-transform duration-150
-                   focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-        style={{ backgroundColor: data.industry.color }}
+                   focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F]"
       >
         {open ? (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         ) : (
-          <DolphIQIcon className="w-6 h-4" />
+          <DolphIQIcon className="w-8 h-8" />
         )}
-        <DolphIQWordmark />
+        <span className="text-base" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+          Ask <DolphIQWordmark />
+        </span>
         {!open && messages.length > 0 && (
-          <span className="w-2 h-2 rounded-full bg-white/70" aria-hidden="true" />
+          <span className="w-2 h-2 rounded-full bg-[#B7791F]" aria-hidden="true" />
         )}
       </button>
 
       {/* ── Chat panel ────────────────────────────────────────────────────────── */}
       {open && (
         <div
-          className="fixed bottom-20 right-6 z-40 flex flex-col bg-gray-950 rounded-2xl
-                     shadow-2xl border border-gray-800 overflow-hidden
+          className="fixed bottom-20 right-6 z-40 flex flex-col bg-white rounded-2xl
+                     shadow-2xl border border-[#e8ddcf] overflow-hidden
                      w-[calc(100vw-3rem)] sm:w-96"
           style={{ height: 'min(580px, calc(100vh - 160px))' }}
           role="dialog"
           aria-label="AI Career Advisor"
           aria-modal="false"
         >
-          {/* Header — dolphIQ identity + tagline + industry */}
+          {/* Header - Rev identity + tagline + industry */}
           <div
-            className="flex items-start justify-between px-4 py-3 flex-shrink-0 gap-3"
-            style={{ backgroundColor: `${data.industry.color}22`, borderBottom: `1px solid ${data.industry.color}33` }}
+            className="flex items-start justify-between px-4 py-3 flex-shrink-0 gap-3
+                       bg-[#500000] border-b-2 border-[#B7791F]"
           >
-            <div className="flex items-start gap-2.5 min-w-0">
-              <DolphIQIcon className="w-7 h-5 text-white mt-0.5 flex-shrink-0" />
+            <div className="flex items-start gap-3 min-w-0">
+              <DolphIQIcon chip className="w-10 h-10 mt-0.5 flex-shrink-0" />
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-white">
+                  <span className="text-base font-bold text-white">
                     <DolphIQWordmark />
                   </span>
                   <span className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" aria-hidden="true" />
                 </div>
-                <p className="text-[11px] text-gray-300 leading-tight mt-0.5">
-                  Intelligent navigation for your career
+                <p className="text-[11px] text-[#e3cf9f] leading-tight mt-0.5">
+                  Your Aggie career guide
                 </p>
-                <p className="text-[10px] text-gray-500 leading-tight mt-0.5">
+                <p className="text-[10px] text-white/60 leading-tight mt-0.5">
                   {data.industry.name}
                 </p>
               </div>
@@ -340,8 +342,8 @@ export default function AgentChat({ data }: Props) {
             {messages.length > 0 && (
               <button
                 onClick={clearChat}
-                className="text-xs text-gray-500 hover:text-gray-300 transition-colors flex-shrink-0
-                           focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-400 rounded"
+                className="text-xs text-white/70 hover:text-white transition-colors flex-shrink-0
+                           focus:outline-none focus-visible:ring-1 focus-visible:ring-[#B7791F] rounded"
                 aria-label="Clear conversation"
               >
                 Clear
@@ -352,15 +354,15 @@ export default function AgentChat({ data }: Props) {
           {/* Messages area */}
           <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4 min-h-0">
 
-            {/* Welcome message — dolphIQ introduces itself */}
+            {/* Welcome message - Rev introduces itself */}
             {messages.length === 0 && (
               <div className="text-center py-4">
-                <DolphIQIcon className="w-12 h-8 text-white/90 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-gray-200">
-                  Hi, I&apos;m <DolphIQWordmark />
+                <DolphIQIcon className="w-16 h-16 mx-auto mb-2" />
+                <p className="text-sm font-semibold text-gray-800">
+                  Howdy! I&apos;m <DolphIQWordmark className="text-[#500000]" />
                 </p>
-                <p className="text-xs text-gray-400 mt-1.5 max-w-[260px] mx-auto leading-relaxed">
-                  Ask me anything about {data.industry.name} careers — I know every role, salary, and pathway on this map.
+                <p className="text-xs text-gray-500 mt-1.5 max-w-[260px] mx-auto leading-relaxed">
+                  Ask me anything about {data.industry.name} careers - I know every role, salary, and pathway on this map.
                 </p>
               </div>
             )}
@@ -372,9 +374,9 @@ export default function AgentChat({ data }: Props) {
                   <button
                     key={prompt}
                     onClick={() => sendMessage(prompt)}
-                    className="text-left text-xs px-3 py-2.5 rounded-xl border border-gray-700
-                               text-gray-300 hover:bg-gray-800 hover:border-gray-600 transition-colors
-                               focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                    className="text-left text-xs px-3 py-2.5 rounded-xl border border-[#e0d5c2] bg-[#FAF7F2]
+                               text-gray-700 hover:bg-[#f3ead9] hover:border-[#B7791F] transition-colors
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F]"
                   >
                     {prompt}
                   </button>
@@ -394,15 +396,15 @@ export default function AgentChat({ data }: Props) {
                     msg.role === 'user'
                       ? 'text-white rounded-br-sm'
                       : msg.error
-                      ? 'bg-red-950 text-red-300 border border-red-800 rounded-bl-sm'
-                      : 'bg-gray-800 text-gray-100 rounded-bl-sm',
+                      ? 'bg-red-50 text-red-700 border border-red-200 rounded-bl-sm'
+                      : 'bg-[#f5f0e6] text-gray-800 rounded-bl-sm',
                   ].join(' ')}
                   style={msg.role === 'user' ? { backgroundColor: data.industry.color } : {}}
                 >
                   {msg.role === 'assistant' && !msg.error ? (
                     <>
                       <RichText text={stripPathLine(msg.content) || '…'} data={data} />
-                      {/* "Show on map" action — appears when a completed reply
+                      {/* "Show on map" action - appears when a completed reply
                           carried a PATH: line with real role IDs */}
                       {(() => {
                         const isStreamingThis =
@@ -436,9 +438,9 @@ export default function AgentChat({ data }: Props) {
                           </button>
                         );
                       })()}
-                      {/* Provider badge — tiny, subtle */}
+                      {/* Provider badge - tiny, subtle */}
                       {msg.provider && msg.content && (
-                        <span className="block text-[9px] text-gray-600 mt-1.5 select-none">
+                        <span className="block text-[9px] text-gray-400 mt-1.5 select-none">
                           via {msg.provider}
                         </span>
                       )}
@@ -463,7 +465,7 @@ export default function AgentChat({ data }: Props) {
           {/* Input area */}
           <form
             onSubmit={handleSubmit}
-            className="flex-shrink-0 px-3 py-3 border-t border-gray-800 bg-gray-900 flex items-end gap-2"
+            className="flex-shrink-0 px-3 py-3 border-t border-[#e8ddcf] bg-white flex items-end gap-2"
           >
             <textarea
               ref={inputRef}
@@ -473,9 +475,9 @@ export default function AgentChat({ data }: Props) {
               placeholder="Ask about careers, skills, salaries…"
               rows={1}
               disabled={streaming}
-              className="flex-1 resize-none bg-gray-800 border border-gray-700 rounded-xl
-                         px-3 py-2.5 text-sm text-gray-100 placeholder-gray-500
-                         focus:outline-none focus:border-gray-500
+              className="flex-1 resize-none bg-[#FAF7F2] border border-[#ddd0bb] rounded-xl
+                         px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400
+                         focus:outline-none focus:border-[#500000]
                          disabled:opacity-50 max-h-32 overflow-y-auto"
               style={{ lineHeight: '1.4' }}
               aria-label="Message to AI advisor"
@@ -504,9 +506,9 @@ export default function AgentChat({ data }: Props) {
             </button>
           </form>
 
-          {/* Footer disclaimer — names dolphIQ explicitly */}
-          <p className="text-center text-[10px] text-gray-400 leading-snug py-2 px-3 bg-gray-900 flex-shrink-0">
-            <DolphIQWordmark /> is an AI guide. Responses may be inaccurate — verify with a human advisor before major decisions.
+          {/* Footer disclaimer - names Rev explicitly */}
+          <p className="text-center text-[10px] text-gray-500 leading-snug py-2 px-3 bg-[#FAF7F2] flex-shrink-0">
+            <DolphIQWordmark /> is an AI guide. Responses may be inaccurate - verify with a human advisor before major decisions.
           </p>
         </div>
       )}

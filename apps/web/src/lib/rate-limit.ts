@@ -1,5 +1,5 @@
 /**
- * Sliding-window rate limiter — in-memory for prototype.
+ * Sliding-window rate limiter - in-memory for prototype.
  *
  * HOW IT WORKS (sliding window):
  *   Unlike "reset at midnight", a sliding window tracks requests in the LAST N
@@ -14,7 +14,7 @@
  *
  * WHY IN-MEMORY IS OK FOR PROTOTYPE:
  *   Vercel serverless functions can have multiple instances, so the count won't
- *   be perfectly accurate across instances — but it's close enough for a demo.
+ *   be perfectly accurate across instances - but it's close enough for a demo.
  *   The important thing is the architecture is correct and easy to swap.
  */
 
@@ -22,7 +22,7 @@ interface WindowEntry {
   timestamps: number[]; // unix ms of each request in current window
 }
 
-// Global store — lives for the lifetime of this server process
+// Global store - lives for the lifetime of this server process
 const store = new Map<string, WindowEntry>();
 
 export interface RateLimitConfig {
@@ -46,7 +46,7 @@ export function checkRateLimit(key: string, config: RateLimitConfig): RateLimitR
   entry.timestamps = entry.timestamps.filter(t => t > cutoff);
 
   if (entry.timestamps.length >= config.maxRequests) {
-    // Oldest request in window — that's when a slot opens up
+    // Oldest request in window - that's when a slot opens up
     const oldest    = entry.timestamps[0];
     const resetInMs = (oldest + config.windowMs) - now;
     store.set(key, entry);

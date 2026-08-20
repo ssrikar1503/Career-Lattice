@@ -17,7 +17,7 @@ const DEGREE_TOOLTIP: Record<string, string> = {
 };
 
 // Halo alpha matches the cell tier intensity so the halo "feels native" to
-// the cell — Entry roles get a light halo, Senior roles get a saturated one.
+// the cell - Entry roles get a light halo, Senior roles get a saturated one.
 const HALO_ALPHA_BY_SENIORITY: Record<string, string> = {
   senior: 'FF',
   lead:   'FF',
@@ -35,11 +35,11 @@ interface Props {
   isRecommended:  boolean;
   industryColor:  string;
   industrySlug:   string;
-  /** Topmost row (Senior/Lead) — no upper arrows, all clicks force 'down'. */
+  /** Topmost row (Senior/Lead) - no upper arrows, all clicks force 'down'. */
   isTopRow:       boolean;
-  /** Bottommost row (Entry) — no lower arrows, all clicks force 'up'. */
+  /** Bottommost row (Entry) - no lower arrows, all clicks force 'up'. */
   isBottomRow:    boolean;
-  /** Worldwide approved-match count — controls the Openings button enabled state. */
+  /** Worldwide approved-match count - controls the Openings button enabled state. */
   anyCount?:      number;
   onClick:        (id: string, direction: 'up' | 'down') => void;
   onDoubleClick?: (id: string) => void;
@@ -122,9 +122,9 @@ function FourArrows({
               }}
             >
               {/* canonical up arrow: stem y=9→5, arrowhead at tip.
-                  Base at radius 7 — ~2-unit gap from the inner core.
+                  Base at radius 7 - ~2-unit gap from the inner core.
                   Tip at radius 11. Pushed state (-2) lands tip at radius 13
-                  — comfortable distance from the bigger bloom edge (~18). */}
+                  - comfortable distance from the bigger bloom edge (~18). */}
               <line     x1="16" y1="9" x2="16" y2="5" />
               <polyline points="14,7 16,5 18,7" />
             </g>
@@ -158,9 +158,9 @@ export default function RoleCard({
 
   // Last-clicked role OR hovered role gets the big bloom + chevrons + tooltip.
   const showActive    = isLastInPath || (hovered && !isDimmed);
-  // Earlier path members — shrink to a small solid cluster-colored dot.
+  // Earlier path members - shrink to a small solid cluster-colored dot.
   const isCommitted   = isSelected && !isLastInPath;
-  // Adjacent (next-step option) — same circle visual but gets a dark pill label
+  // Adjacent (next-step option) - same circle visual but gets a dark pill label
   // floating below it identifying it as a click target.
   const showPillLabel = isCommitted || isAdjacent;
 
@@ -178,10 +178,10 @@ export default function RoleCard({
   };
 
   /** Compute which arrow-zone the cursor is in, relative to the visual center
-   *  of the circle (NOT the card's geometric center — cf. map-layout.ts cy).
+   *  of the circle (NOT the card's geometric center - cf. map-layout.ts cy).
    *
-   *  Up zone:   angle ∈ (−135°, −45°)  — upper quadrant
-   *  Down zone: angle ∈ ( 45°, 135°)    — lower quadrant
+   *  Up zone:   angle ∈ (−135°, −45°)  - upper quadrant
+   *  Down zone: angle ∈ ( 45°, 135°)    - lower quadrant
    *  Otherwise (left, right, or within 5px deadzone) → neutral.
    *
    *  Top-row roles suppress the up zone (no upper arrows ever fan); bottom-row
@@ -214,10 +214,10 @@ export default function RoleCard({
     return clientY < centerY ? 'up' : 'down';
   };
 
-  // Softer dim than before — reference barely fades non-related roles.
+  // Softer dim than before - reference barely fades non-related roles.
   const opacityClass = isDimmed ? 'opacity-60' : 'opacity-100';
 
-  // Committed dot — same size as the resting circle (so X shrinks back to its
+  // Committed dot - same size as the resting circle (so X shrinks back to its
   // original dimension when Y is clicked, not smaller).
   const COMMITTED_R = NODE_R;
 
@@ -230,7 +230,7 @@ export default function RoleCard({
       onMouseLeave={closeTooltip}
       onMouseMove={showActive ? handleMouseMove : undefined}
     >
-      {/* Hover tooltip — right side of the circle. */}
+      {/* Hover tooltip - right side of the circle. */}
       {hovered && !isDimmed && (
         <div
           className="absolute z-50 left-full top-1/2 -translate-y-1/2 pl-2 w-60"
@@ -247,7 +247,7 @@ export default function RoleCard({
               aria-label="Close preview"
               className="absolute top-1.5 right-1.5 w-5 h-5 rounded text-gray-400 hover:text-gray-700
                          hover:bg-gray-100 flex items-center justify-center text-base leading-none
-                         focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                         focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F]"
             >
               ×
             </button>
@@ -263,7 +263,7 @@ export default function RoleCard({
               {role.salary_range || `${formatSalary(role.salary_min, role.salary_max)} / year`}
             </p>
 
-            {/* Phase 5 — Details + View Openings, side-by-side. The button
+            {/* Phase 5 - Details + View Openings, side-by-side. The button
                 indicator replaces the amber dot from Phase 4 (button is itself
                 the cue that openings exist). */}
             <div className="flex items-center gap-2">
@@ -312,7 +312,7 @@ export default function RoleCard({
                 <span
                   className="inline-block px-3 py-1.5 rounded text-[11px] font-semibold uppercase tracking-wide
                              text-gray-400 border border-gray-200 bg-gray-50 cursor-not-allowed"
-                  title="No live openings for this role yet — check back next week"
+                  title="No live openings for this role yet - check back next week"
                   aria-disabled="true"
                 >
                   No openings
@@ -330,7 +330,7 @@ export default function RoleCard({
         aria-pressed={isSelected}
         aria-label={`${role.title}${isSelected ? ' (in path)' : ''}`}
         className="w-full h-full flex flex-col items-center gap-1 px-1 pt-1
-                   cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+                   cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F] rounded"
       >
         {/* Circle area. Three mutually-exclusive looks:
             • showActive   → big solid bloom + 4 outward chevrons (hover or last-in-path)
@@ -341,7 +341,7 @@ export default function RoleCard({
           style={{ width: NODE_R * 2, height: NODE_R * 2 }}
           aria-hidden="true"
         >
-          {/* Bloomed halo — solid (no transparency) so the inner white core is
+          {/* Bloomed halo - solid (no transparency) so the inner white core is
               fully covered. Scales 0.2 → 1 with 800ms ease-out. */}
           <span
             className="absolute rounded-full pointer-events-none
@@ -367,7 +367,7 @@ export default function RoleCard({
             />
           </span>
 
-          {/* Committed dot (in path but not last) — small solid cluster-colored circle. */}
+          {/* Committed dot (in path but not last) - small solid cluster-colored circle. */}
           {isCommitted && !showActive && (
             <span
               className="absolute rounded-full"
@@ -386,10 +386,10 @@ export default function RoleCard({
           {/* Inner white core circle. Shown in:
               - resting / adjacent states            (default look)
               - active hover OR last-in-path         (white core inside bloom)
-              - hovered committed role                (treated like fresh hover —
+              - hovered committed role                (treated like fresh hover -
                                                        see [[committed-hover-rule]])
               Hidden only when the role is committed AND the bloom isn't active
-              — in that case the small cluster-colored "committed dot" takes its
+              - in that case the small cluster-colored "committed dot" takes its
               place. */}
           {(!isCommitted || showActive) && (
             <span
@@ -401,7 +401,7 @@ export default function RoleCard({
             />
           )}
 
-          {/* ◆ degree marker — CSS-rotated square, pixel-centered inside the white
+          {/* ◆ degree marker - CSS-rotated square, pixel-centered inside the white
               core. Visible whenever the white inner circle is visible (resting,
               adjacent, hover, last-in-path). Hidden only on committed-non-active
               roles where the white core is replaced by the cluster-colored dot.
@@ -424,11 +424,11 @@ export default function RoleCard({
             />
           )}
 
-          {/* Phase 5 — amber dot removed. The "View openings" button in the
+          {/* Phase 5 - amber dot removed. The "View openings" button in the
               hover tooltip is now the hiring indicator. */}
         </span>
 
-        {/* Label area — three modes:
+        {/* Label area - three modes:
             • showActive   → hidden (tooltip takes over)
             • showPillLabel→ dark gray pill with white title text
             • otherwise    → normal small gray title text */}
@@ -456,7 +456,7 @@ export default function RoleCard({
           </span>
         )}
 
-        {/* Phase 4 — count moved off the card (was crowding the title) into
+        {/* Phase 4 - count moved off the card (was crowding the title) into
             the upper-right amber dot + hover tooltip + role detail modal. */}
       </button>
     </div>

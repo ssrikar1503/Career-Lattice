@@ -2,8 +2,15 @@
 
 /* ── Base ──────────────────────────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
+  --background: #FAF7F2;   /* Aggie cream */
   --foreground: #111827;
+  --maroon:     #500000;   /* Aggie Maroon */
+  --gold:       #B7791F;
+}
+
+/* Serif headings — matches the TEES presentation theme */
+h1, h2 {
+  font-family: Georgia, 'Times New Roman', serif;
 }
 
 body {
@@ -21,7 +28,7 @@ html {
   outline: none;
 }
 *:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #500000;
   outline-offset: 2px;
   border-radius: 6px;
 }

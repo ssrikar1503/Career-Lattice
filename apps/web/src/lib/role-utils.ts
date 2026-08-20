@@ -55,10 +55,10 @@ export function getRecommendedRoles(
       ? 0
       : (degreeRank[role.degree_required] ?? 0);
 
-    // Education fit — prefer roles the user is qualified for
+    // Education fit - prefer roles the user is qualified for
     if (roleRank <= userRank) score += 3;
     if (roleRank === userRank) score += 2;
-    // 'Sometimes required' roles get a small bonus — they're entry points for non-traditional backgrounds
+    // 'Sometimes required' roles get a small bonus - they're entry points for non-traditional backgrounds
     if (role.degree_required === 'sometimes') score += 1;
 
     // Persona

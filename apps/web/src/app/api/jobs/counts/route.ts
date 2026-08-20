@@ -5,13 +5,13 @@
  * for a given industry, filtered by location.
  *
  * Query params:
- *   industry  (required) — industry slug, e.g. "additive-manufacturing"
- *   country   (optional, default "US") — one of:
- *                "US"           — only US jobs (cached fast path)
- *                "worldwide"    — every approved job regardless of country
- *                "US,GB,CA"     — comma-separated ISO codes
+ *   industry  (required) - industry slug, e.g. "additive-manufacturing"
+ *   country   (optional, default "US") - one of:
+ *                "US"           - only US jobs (cached fast path)
+ *                "worldwide"    - every approved job regardless of country
+ *                "US,GB,CA"     - comma-separated ISO codes
  *
- * Mapping: roles keyed by lowercased title — the website's static JSON IDs
+ * Mapping: roles keyed by lowercased title - the website's static JSON IDs
  * are NOT preserved through the seeder, so title is the join key.
  *
  * Fast path (country=US):
@@ -48,7 +48,7 @@ function parseCountryParam(raw: string | null): {
   if (trimmed.toLowerCase() === 'worldwide') {
     return { mode: 'worldwide', list: [] };
   }
-  // Comma list — uppercase, dedupe, keep only 2-letter codes (or 'XX')
+  // Comma list - uppercase, dedupe, keep only 2-letter codes (or 'XX')
   const list = Array.from(new Set(
     trimmed.split(',')
       .map(s => s.trim().toUpperCase())
@@ -124,7 +124,7 @@ export async function GET(request: Request) {
         return Response.json({});
       }
 
-      // Page through role_matches — Supabase PostgREST silently caps a
+      // Page through role_matches - Supabase PostgREST silently caps a
       // single .limit() / unbounded select at 1000 rows. With matches growing
       // past 1000 across an industry, the worldwide count would be wrong
       // without pagination.

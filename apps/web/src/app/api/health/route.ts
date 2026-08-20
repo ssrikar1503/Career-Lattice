@@ -9,7 +9,7 @@
  *   - Quick debug from the browser when something feels broken
  *   - CI smoke tests after deploy
  *
- * Stays cheap — no actual API calls are made. We only check if env vars
+ * Stays cheap - no actual API calls are made. We only check if env vars
  * are present and what state circuit breakers are in.
  */
 import { getProviderStatus } from '@/lib/ai-providers';

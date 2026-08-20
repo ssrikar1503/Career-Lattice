@@ -51,8 +51,8 @@ export default function MobileList({ roles, clusters, industrySlug }: Props) {
                     role="listitem"
                     className="block bg-white border border-gray-200 rounded-xl p-4 shadow-sm
                                hover:shadow-md hover:border-gray-300 transition-all duration-150
-                               focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                    aria-label={`${role.title} — ${role.seniority} level, ${formatSalary(role.salary_min, role.salary_max)}`}
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F]"
+                    aria-label={`${role.title} - ${role.seniority} level, ${formatSalary(role.salary_min, role.salary_max)}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">

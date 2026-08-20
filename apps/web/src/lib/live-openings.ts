@@ -43,7 +43,7 @@ function top(map: Map<string, number>, n: number): string[] {
 }
 
 /**
- * @param staticRoles the industry's taxonomy roles from the JSON files —
+ * @param staticRoles the industry's taxonomy roles from the JSON files -
  *   used to translate DB rows back to static role IDs (e.g. "sp-r-01")
  *   so the agent's citations linkify. Titles are the join key: the seeder
  *   does not preserve JSON IDs in the database.
@@ -115,8 +115,8 @@ export async function getLiveOpeningsBlock(
           ? `${agg.count} US opening${agg.count === 1 ? '' : 's'}`
           : `${agg.count} openings (${agg.usCount} US, ${agg.count - agg.usCount} international)`;
         return `${staticId ? `[${staticId}] ` : ''}${title}: ${counts}` +
-          (companies ? ` — hiring: ${companies}` : '') +
-          (locations ? ` — top locations: ${locations}` : '');
+          (companies ? ` - hiring: ${companies}` : '') +
+          (locations ? ` - top locations: ${locations}` : '');
       });
 
     const block =

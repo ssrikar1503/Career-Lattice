@@ -1,10 +1,10 @@
 import type { Role, SeniorityLevel } from './types';
 
 /**
- * Map layout constants — sized to match the Critical Materials reference site:
+ * Map layout constants - sized to match the Critical Materials reference site:
  * compact circular nodes packed densely in tinted columns.
  *
- * Three tiers (Senior / Mid / Entry) — "lead" roles in the data render into
+ * Three tiers (Senior / Mid / Entry) - "lead" roles in the data render into
  * the Senior row visually. The four-tier data model is preserved so we can
  * restore it later without re-touching the JSONs.
  */
@@ -12,7 +12,7 @@ export const LAYOUT = {
   CARD_W: 100,        // total clickable footprint per role (circle + title)
   CARD_H: 72,         // bumped from 60 for breathing room
   STACK_GAP: 10,      // gap between cards stacked in the same cell (was 6)
-  COL_W: 234,         // legacy default — actual width derived per industry below
+  COL_W: 234,         // legacy default - actual width derived per industry below
   ROW_GAP: 36,        // vertical gap between seniority bands (was 24)
   HEADER_H: 56,       // cluster name header height
   LEFT_W: 80,         // seniority label column width
@@ -21,7 +21,7 @@ export const LAYOUT = {
   NODE_R_ACTIVE: 29,  // halo radius when hovered or selected (diameter ≈ 58px)
 } as const;
 
-// Display order — only 3 rows visible (Senior on top, Entry on bottom).
+// Display order - only 3 rows visible (Senior on top, Entry on bottom).
 // "lead" still exists in the data model but renders into the Senior row.
 export const SENIORITY_DISPLAY_ORDER: SeniorityLevel[] = ['senior', 'mid', 'entry'];
 
@@ -41,7 +41,7 @@ export const SENIORITY_LABELS: Record<SeniorityLevel, string> = {
 export interface CardPosition {
   x:  number;
   y:  number;
-  cx: number; // center x — used for SVG line endpoints
+  cx: number; // center x - used for SVG line endpoints
   cy: number; // center y
   w:  number; // role-card width (may shrink for industries with more columns)
   h:  number; // role-card height
@@ -54,9 +54,9 @@ export interface LayoutResult {
   rowStartY: Record<number, number>;
   rowBandHeight: Record<number, number>;
   numCols: number;
-  /** Actual column width chosen for this industry — may differ from LAYOUT.COL_W. */
+  /** Actual column width chosen for this industry - may differ from LAYOUT.COL_W. */
   colW: number;
-  /** Actual card width chosen for this industry — may differ from LAYOUT.CARD_W. */
+  /** Actual card width chosen for this industry - may differ from LAYOUT.CARD_W. */
   cardW: number;
 }
 
@@ -75,13 +75,13 @@ function effectiveRow(role: Role): number {
  * Target page-container width that the map must fit inside (in pixels).
  * Page <main> is max-w-[1508px] − 2×24 (sm:px-6) = 1460px usable, but the
  * map targets ~40px less so Space (6 clusters, the widest industry) doesn't
- * sit flush against the page edges — mx-auto on the map div centers it,
+ * sit flush against the page edges - mx-auto on the map div centers it,
  * leaving ~20px breathing room on each side. AM/Semi (5 clusters) are
  * narrower than this anyway and stay centered with more buffer.
  */
 const TARGET_TOTAL_WIDTH = 1420;
 
-// Inner sub-grid is capped at 3 × 3 — rows = salary tiers (top = highest),
+// Inner sub-grid is capped at 3 × 3 - rows = salary tiers (top = highest),
 // up to 3 roles per tier-row.
 const MAX_SUB_COLS = 3;
 const MAX_SUB_ROWS = 3;
@@ -103,7 +103,7 @@ function roleSalary(r: Role): number {
  * Lay out a cell's roles into a fixed 3-row × 3-col frame.
  * Returns exactly MAX_SUB_ROWS rows; empty rows are `[]`.
  *
- * Distribution rules ("hourglass" — keep top/bottom heavier, middle thinner,
+ * Distribution rules ("hourglass" - keep top/bottom heavier, middle thinner,
  * no completely empty row AND no completely empty column when the cell has
  * enough roles to fill three):
  *   - 1 tier (close salaries) → spread salary-desc across all 3 rows so the
@@ -116,7 +116,7 @@ function roleSalary(r: Role): number {
  *     [3,1,2]: row 0 = full high tier (3 roles), row 1 = highest of low tier
  *     (boundary), row 2 = remaining 2 low-tier roles. Keeps high tier visible
  *     in row 0, fills all rows, and avoids the empty col 1.
- *   - 2 tiers, one row each (asymmetric counts like 2+1 or 1+2 — not 3+3) →
+ *   - 2 tiers, one row each (asymmetric counts like 2+1 or 1+2 - not 3+3) →
  *     row 0 + row 2, middle stays empty for max separation.
  *   - 2 tiers, 3 rows total (one tier was chunked into 2 rows) → fill all 3
  *     rows top-down in salary-desc order.
@@ -124,11 +124,11 @@ function roleSalary(r: Role): number {
  *
  * Tier discovery:
  *   1. Sort roles salary desc (tie-break: id).
- *   2. Gap-based clustering — adjacent roles join the same cluster if their
+ *   2. Gap-based clustering - adjacent roles join the same cluster if their
  *      salary gap is within tolerance (15% of cell max salary, clamped to
  *      [$10K, $25K]).
  *   3. If chunked row count exceeds 3, merge the adjacent cluster pair with
- *      the smallest gap and retry — until rows ≤ 3.
+ *      the smallest gap and retry - until rows ≤ 3.
  */
 function layoutCellRoles(rolesInCell: Role[]): Role[][] {
   const empty: Role[][] = Array.from({ length: MAX_SUB_ROWS }, () => []);
@@ -205,12 +205,12 @@ function layoutCellRoles(rolesInCell: Role[]): Role[][] {
     const blocks = clusters.map(chunk);
     const totalRows = blocks.reduce((s, b) => s + b.length, 0);
     if (totalRows === 2) {
-      // 2 tiers, 1 row each (asymmetric counts) — skip middle for separation
+      // 2 tiers, 1 row each (asymmetric counts) - skip middle for separation
       out[0] = blocks[0][0];
       out[2] = blocks[1][0];
       return out;
     }
-    // 2 tiers, 3 rows total (one tier was chunked) — fill top-down
+    // 2 tiers, 3 rows total (one tier was chunked) - fill top-down
     let idx = 0;
     for (const block of blocks) {
       for (const row of block) {
@@ -220,7 +220,7 @@ function layoutCellRoles(rolesInCell: Role[]): Role[][] {
     return out;
   }
 
-  // 3 tiers — fill all 3 rows in salary desc order
+  // 3 tiers - fill all 3 rows in salary desc order
   const blocks = clusters.map(chunk);
   let idx = 0;
   for (const block of blocks) {
@@ -233,7 +233,7 @@ function layoutCellRoles(rolesInCell: Role[]): Role[][] {
 
 /**
  * Maps a role's index within its row to a 3-col-grid column slot.
- * "Symmetric diamond" — partial rows visually balance the cell:
+ * "Symmetric diamond" - partial rows visually balance the cell:
  *   - 1 role  → col 1 (center)
  *   - 2 roles → cols 0 + 2 (edges)
  *   - 3 roles → cols 0, 1, 2 (full)
@@ -269,7 +269,7 @@ export function computeLayout(roles: Role[]): LayoutResult {
   // ── Step 3: derive COL_W and CARD_W ──────────────────────────────────────
   // COL_W is sized off REF_NUM_COLS (= 6, the widest industry) so cells are
   // identical across AM/Semi/Space. Every cell always reserves the full
-  // MAX_SUB_COLS × MAX_SUB_ROWS frame — empty slots stay visually blank so
+  // MAX_SUB_COLS × MAX_SUB_ROWS frame - empty slots stay visually blank so
   // the 3×3 inner grid is consistent across all cells in the map.
   const COL_W = Math.floor((TARGET_TOTAL_WIDTH - LEFT_W - OUTER_PAD) / REF_NUM_COLS);
   const fitForSubCols = Math.floor((COL_W - (MAX_SUB_COLS - 1) * STACK_GAP) / MAX_SUB_COLS);

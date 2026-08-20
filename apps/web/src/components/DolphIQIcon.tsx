@@ -1,53 +1,37 @@
+import Image from 'next/image';
+
 /**
- * dolphIQ icon — geometric minimal dolphin silhouette.
- *
- * Single-color path (uses currentColor) so it inherits text color from any
- * parent — works on coloured industry backgrounds, dark chat panels, etc.
- *
- * Pose: leaping dolphin, head right, dorsal fin centered. The shape is
- * a single closed body path + dorsal fin triangle + eye dot.
+ * Rev icon - the Reveille silhouette (Texas A&M's First Lady of Aggieland).
+ * The artwork is maroon-on-transparent, so on maroon surfaces wrap it in a
+ * white chip (chip prop) to keep contrast.
  */
 interface Props {
   className?: string;
-  /** Apply a subtle white eye highlight (defaults to true). */
-  showEye?: boolean;
+  /** Render inside a white circular chip - use on maroon backgrounds. */
+  chip?: boolean;
 }
 
-export default function DolphIQIcon({ className = '', showEye = true }: Props) {
-  return (
-    <svg
-      viewBox="0 0 64 40"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="currentColor"
-      className={className}
+export default function DolphIQIcon({ className = '', chip = false }: Props) {
+  const img = (
+    <Image
+      src="/reveille.webp"
+      alt=""
+      width={64}
+      height={63}
+      className={chip ? 'w-full h-full object-contain p-[3px]' : className}
       aria-hidden="true"
-    >
-      {/* Body — streamlined leaping dolphin, head facing right */}
-      <path d="M 58 24
-               C 60 18, 58 12, 50 10
-               C 38 8, 26 12, 16 18
-               L 8 14
-               L 12 18
-               L 4 20
-               L 12 22
-               L 6 28
-               L 14 24
-               C 24 28, 38 28, 48 26
-               C 54 25, 58 25, 58 24 Z" />
-      {/* Dorsal fin — triangular */}
-      <path d="M 30 13 L 36 4 L 40 13 Z" />
-      {/* Eye */}
-      {showEye && <circle cx="48" cy="18" r="1.3" fill="white" />}
-    </svg>
+    />
+  );
+  if (!chip) return img;
+  return (
+    <span className={`inline-flex items-center justify-center rounded-full bg-white overflow-hidden ${className}`}>
+      {img}
+    </span>
   );
 }
 
 /**
- * dolphIQ wordmark — styled text component.
- *
- * Renders as "dolph" + "IQ" with the IQ visually distinct (bolder / accented).
- * This is the textual brand: dolph + IQ, supporting both pronunciations
- * "DOL-fik" and "DOL-fee-q".
+ * Rev wordmark - Reveille's nickname, set in the site's serif brand face.
  */
 interface WordmarkProps {
   className?: string;
@@ -55,9 +39,11 @@ interface WordmarkProps {
 
 export function DolphIQWordmark({ className = '' }: WordmarkProps) {
   return (
-    <span className={className}>
-      <span>dolph</span>
-      <span className="font-extrabold tracking-tight">IQ</span>
+    <span
+      className={`font-bold ${className}`}
+      style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+    >
+      Rev
     </span>
   );
 }

@@ -4,7 +4,7 @@
     "name": "Space Industry",
     "slug": "space",
     "description": "Spacecraft design, propulsion, launch operations, mission control, and the commercial space economy. 90 roles across 6 clusters.",
-    "color": "#7c3aed"
+    "color": "#500000"
   },
   "clusters": [
     "Spacecraft Design & Engineering",
@@ -397,7 +397,7 @@
         }
       ],
       "certifications": [],
-      "description": "As a Chief Engineer for spacecraft, you serve as the ultimate technical authority, orchestrating the entire lifecycle of complex orbital or deep-space missions. You own the mission architecture, balancing rigorous engineering trade-offs against stringent mission requirements and safety constraints. Day-to-day, you lead multidisciplinary teams through critical design reviews, verifying that every subsystem—from propulsion to avionics—integrates seamlessly into a reliable flight vehicle. You act as the primary technical bridge between executive leadership and engineering staff, ensuring that mission success remains the north star amidst evolving technical challenges. You thrive in this role if you possess an unwavering commitment to technical excellence, the ability to synthesize disparate data into coherent strategies, and the resilience to make high-stakes decisions under extreme pressure.",
+      "description": "As a Chief Engineer for spacecraft, you serve as the ultimate technical authority, orchestrating the entire lifecycle of complex orbital or deep-space missions. You own the mission architecture, balancing rigorous engineering trade-offs against stringent mission requirements and safety constraints. Day-to-day, you lead multidisciplinary teams through critical design reviews, verifying that every subsystem, from propulsion to avionics, integrates seamlessly into a reliable flight vehicle. You act as the primary technical bridge between executive leadership and engineering staff, ensuring that mission success remains the north star amidst evolving technical challenges. You thrive in this role if you possess an unwavering commitment to technical excellence, the ability to synthesize disparate data into coherent strategies, and the resilience to make high-stakes decisions under extreme pressure.",
       "pathway_ids": [
         "sp-p-01"
       ],

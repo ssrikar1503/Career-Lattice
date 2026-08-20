@@ -9,7 +9,7 @@ interface Props {
 }
 
 /**
- * Save & Share modal — matches the Critical Materials reference site.
+ * Save & Share modal - matches the Critical Materials reference site.
  * Reads the current browser URL on open (the path-with-?path= already lives there
  * thanks to CareerMap's URL sync). Provides one-click clipboard copy.
  */
