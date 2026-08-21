@@ -1,6 +1,8 @@
-# Career Pathways Platform
+# Career Lattice
 
-A multi-industry career-lattice website with an AI guide (**dolphIQ**) and a live job-ingestion pipeline that keeps role data current.
+**Live site: https://career-lattice-beta.vercel.app**
+
+A multi-industry career exploration platform built by **Texas A&M Engineering Workforce Development**: interactive career maps for 258 curated roles, an AI career guide (**Rev**, named after Reveille), and a fully automated weekly job-ingestion pipeline that keeps live openings current.
 
 **Live industries:** Additive Manufacturing · Semiconductors · Space Industry
 **Stack:** Next.js 16 · TypeScript · Tailwind v4 · Python 3.11 · Supabase Postgres
@@ -12,29 +14,29 @@ A multi-industry career-lattice website with an AI guide (**dolphIQ**) and a liv
 
 Two systems that work together but ship independently:
 
-**System A — The public website.** Anyone (student, career changer, workforce advisor) picks an industry, sees every role laid out as an interactive map (clusters × seniority), clicks a role to see who it leads to, builds a multi-role *career path* they can share via URL, and chats with **dolphIQ** — an AI guide named for one of the most intelligent species on Earth — for natural-language help.
+**System A - The public website.** Anyone (student, career changer, workforce advisor) picks an industry, sees every role laid out as an interactive map (clusters × seniority), clicks a role to see who it leads to, builds a multi-role *career path* they can share via URL, and chats with **Rev**, the AI career guide named after Reveille, Texas A&M's mascot, for natural-language help. Rev knows all three industries, recommends a committed career path for the user's situation, and can draw that path on the map.
 
-**System B — The data ingestion pipeline.** A weekly GitHub Actions cron scrapes Greenhouse and Lever public job boards, uses AI to extract structured fields from each posting, matches each job against the canonical role taxonomy, and surfaces high-confidence matches as "live openings" on the map. Ambiguous matches go to a `/admin` queue for human review.
+**System B - The data ingestion pipeline.** A weekly GitHub Actions cron scrapes Greenhouse, Lever, and Workday public job boards, extracts structured fields deterministically, then uses AI to match each job against the canonical role taxonomy, and surfaces high-confidence matches as "live openings" on the map. Ambiguous matches go to a `/admin` queue for human review.
 
-The two systems communicate only through Supabase — neither requires the other to be up.
+The two systems communicate only through Supabase - neither requires the other to be up.
 
 ---
 
 ## Repository structure
 
 ```
-career_path/
+Career-Lattice/
 ├── apps/
 │   ├── web/                    # Next.js website (deploys to Vercel)
 │   │   ├── src/
 │   │   │   ├── app/            # App Router pages + API routes
-│   │   │   ├── components/     # CareerMap, AgentChat, DolphIQIcon, ...
+│   │   │   ├── components/     # CareerMap, AgentChat, Rev icon, ...
 │   │   │   ├── data/           # Taxonomy JSON files (one per industry)
 │   │   │   └── lib/            # AI providers, rate limiting, layout engine
 │   │   └── package.json
 │   └── pipeline/               # Python ingestion pipeline (runs on GHA cron)
 │       ├── main.py             # Orchestrator
-│       ├── scrapers/           # Greenhouse + Lever scrapers
+│       ├── scrapers/           # Greenhouse, Lever, Workday scrapers
 │       ├── extractor.py        # AI extracts structured fields from raw jobs
 │       ├── matcher.py          # Skill+title scoring + AI judgment
 │       ├── seed_taxonomy.py    # One-off: load JSON taxonomies into Supabase
@@ -70,16 +72,16 @@ npm run dev                       # http://localhost:3000
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL (browser + server) |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only key for admin operations |
-| `ANTHROPIC_API_KEY` | Optional — Claude is tried first if set |
-| `GEMINI_API_KEY` | Optional — fallback (or primary if no Claude key) |
-| `OPENAI_API_KEY` | Optional — second fallback |
+| `ANTHROPIC_API_KEY` | Optional - Claude is tried first if set |
+| `GEMINI_API_KEY` | Optional - fallback (or primary if no Claude key) |
+| `OPENAI_API_KEY` | Optional - second fallback |
 | `ADMIN_PASSWORD` | Password for the `/admin` review queue |
 
-You need at least **one** AI key for dolphIQ to work.
+You need at least **one** AI key for Rev to work.
 
 Useful commands:
 ```bash
-npm run build       # MUST pass before committing — full TypeScript + routing check
+npm run build       # MUST pass before committing - full TypeScript + routing check
 npm run lint        # ESLint via eslint-config-next
 npm start           # Serve a production build locally
 ```
@@ -112,8 +114,8 @@ Or trigger the same workflows from GitHub Actions:
 
 Role taxonomies live in **two places** so neither system can break the other:
 
-1. **`apps/web/src/data/*.json`** — the website reads these directly at build/request time. Fast, no DB roundtrip, no cold starts.
-2. **Supabase `canonical_roles` table** — seeded from the same JSONs via `seed_taxonomy.py`. The pipeline matches scraped jobs against these rows.
+1. **`apps/web/src/data/*.json`** - the website reads these directly at build/request time. Fast, no DB roundtrip, no cold starts.
+2. **Supabase `canonical_roles` table** - seeded from the same JSONs via `seed_taxonomy.py`. The pipeline matches scraped jobs against these rows.
 
 When the pipeline finds a high-confidence match, it writes back `canonical_roles.open_jobs_count` so the website can show "X open openings" amber badges.
 
@@ -121,9 +123,9 @@ When the pipeline finds a high-confidence match, it writes back `canonical_roles
 
 ### Multi-provider AI (`apps/web/src/lib/ai-providers.ts`)
 
-The chat endpoint never calls one specific provider — it goes through `streamWithFallback({ system, messages })` which iterates Claude → Gemini → OpenAI. Each has its own circuit breaker (3 consecutive failures → OPEN for 10 minutes → one trial in HALF-OPEN). Rate-limit and transient errors trigger the next provider; non-retriable errors bubble up.
+The chat endpoint never calls one specific provider - it goes through `streamWithFallback({ system, messages })` which iterates Claude → Gemini → OpenAI. Each has its own circuit breaker (3 consecutive failures → OPEN for 10 minutes → one trial in HALF-OPEN). Rate-limit and transient errors trigger the next provider; non-retriable errors bubble up.
 
-The fallback chain primes each provider's stream by pulling the first chunk before committing — this catches errors that surface only on the first API call (rate-limit responses from streaming endpoints).
+The fallback chain primes each provider's stream by pulling the first chunk before committing - this catches errors that surface only on the first API call (rate-limit responses from streaming endpoints).
 
 ### Career-map layout (`apps/web/src/lib/map-layout.ts`)
 
