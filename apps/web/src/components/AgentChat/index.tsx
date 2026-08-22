@@ -357,7 +357,7 @@ export default function AgentChat({ data }: Props) {
             {/* Welcome message - Rev introduces itself */}
             {messages.length === 0 && (
               <div className="text-center py-4">
-                <DolphIQIcon className="w-16 h-16 mx-auto mb-2" />
+                <DolphIQIcon className="w-16 h-16 mx-auto mb-2 text-[#500000]" />
                 <p className="text-sm font-semibold text-gray-800">
                   Howdy! I&apos;m <DolphIQWordmark className="text-[#500000]" />
                 </p>
