@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { Role } from '@/lib/types';
 import { CLUSTER_COLORS, formatSalary } from './constants';
 import { programsFor } from '@/lib/education';
@@ -26,6 +27,17 @@ export default function CareerPathPanel({
     .map(id => roleById.get(id))
     .filter((r): r is Role => Boolean(r));
 
+  // Senior/lead steps keep their programs collapsed behind a chevron -
+  // most people at that stage do not need a new degree, so the links are
+  // opt-in there instead of automatic.
+  const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
+  const toggleStep = (id: string) =>
+    setExpandedSteps(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+
   return (
     <section
       className="mt-6 rounded-lg border border-gray-200 bg-white px-5 py-4"
@@ -51,10 +63,46 @@ export default function CareerPathPanel({
             const tierLabel = role.seniority.charAt(0).toUpperCase() + role.seniority.slice(1);
             // Education stepping stones: first step always; later steps only
             // when the degree requirement changes from the previous role.
-            const showPrograms = i === 0 || chain[i - 1].degree_required !== role.degree_required;
-            const programs = showPrograms ? programsFor(industrySlug, role.degree_required).slice(0, 3) : [];
+            const tierChanged = i === 0 || chain[i - 1].degree_required !== role.degree_required;
+            const isSeniorStep = role.seniority === 'senior' || role.seniority === 'lead';
+            const collapsed = isSeniorStep && !expandedSteps.has(role.id);
+            const programs = tierChanged && !collapsed
+              ? programsFor(industrySlug, role.degree_required).slice(0, 3)
+              : [];
             return (
               <li key={role.id} className="flex flex-col gap-1.5">
+                {tierChanged && isSeniorStep && collapsed && (
+                  <button
+                    type="button"
+                    onClick={() => toggleStep(role.id)}
+                    className="self-start ml-1 pl-3 border-l-2 border-[#e8ddcf] flex items-center gap-1.5
+                               text-[12px] text-gray-500 hover:text-[#500000] transition-colors
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F] rounded"
+                    aria-expanded={false}
+                    aria-label={`Show training programs for ${role.title}`}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                      <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Programs for this step
+                  </button>
+                )}
+                {tierChanged && isSeniorStep && !collapsed && (
+                  <button
+                    type="button"
+                    onClick={() => toggleStep(role.id)}
+                    className="self-start ml-1 pl-3 border-l-2 border-[#e8ddcf] flex items-center gap-1.5
+                               text-[12px] text-gray-500 hover:text-[#500000] transition-colors
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F] rounded"
+                    aria-expanded={true}
+                    aria-label={`Hide training programs for ${role.title}`}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                      <path d="M18 15l-6-6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Hide programs
+                  </button>
+                )}
                 {programs.length > 0 && (
                   <ul className="ml-1 pl-3 border-l-2 border-[#e8ddcf] flex flex-col gap-1 mb-1" role="list"
                       aria-label={`Training programs that prepare you for ${role.title}`}>
