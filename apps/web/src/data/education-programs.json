@@ -1,0 +1,64 @@
+{
+  "_comment": "Texas education programs shown in the role detail modal, keyed by industry slug then degree_required tier. All URLs verified Aug 2026.",
+  "semiconductors": {
+    "hs": [
+      { "institution": "Austin Community College", "program": "Semiconductor Manufacturing (entry certificates)", "url": "https://sites.austincc.edu/semiconductor-manufacturing/" },
+      { "institution": "Temple College", "program": "Level I Certificate, Electromechanical Engineering Technician", "url": "https://www.templecollege.edu/programs/pathways/lv1-electro.html" },
+      { "institution": "Texas State Technical College", "program": "Industrial Systems", "url": "https://www.tstc.edu/programs/industrialsystems/" }
+    ],
+    "2yr": [
+      { "institution": "Austin Community College", "program": "Semiconductor Manufacturing (certificates to degrees)", "url": "https://sites.austincc.edu/semiconductor-manufacturing/" },
+      { "institution": "Texas State Technical College", "program": "Industrial Systems (AAS)", "url": "https://www.tstc.edu/programs/industrialsystems/" },
+      { "institution": "Temple College", "program": "Electromechanical Engineering Technology (AAS)", "url": "https://www.templecollege.edu/programs/pathways/lv1-electro.html" },
+      { "institution": "Texas A&M Engineering Academies", "program": "Start at a partner college, finish an engineering degree at A&M", "url": "https://engineering.tamu.edu/academies" }
+    ],
+    "4yr": [
+      { "institution": "Texas A&M University", "program": "Electrical & Computer Engineering (BS)", "url": "https://engineering.tamu.edu/electrical" },
+      { "institution": "Texas A&M University", "program": "Materials Science & Engineering (BS)", "url": "https://engineering.tamu.edu/materials" },
+      { "institution": "Texas A&M Engineering Academies", "program": "Co-enrollment pathway into A&M Engineering", "url": "https://engineering.tamu.edu/academies" }
+    ],
+    "graduate": [
+      { "institution": "Texas A&M University", "program": "Graduate programs, Electrical & Computer Engineering", "url": "https://engineering.tamu.edu/electrical" },
+      { "institution": "Texas A&M University", "program": "Graduate programs, Materials Science & Engineering", "url": "https://engineering.tamu.edu/materials" }
+    ]
+  },
+  "additive-manufacturing": {
+    "hs": [
+      { "institution": "Texas State Technical College", "program": "Welding Technology", "url": "https://www.tstc.edu/programs/weldingtechnology/" },
+      { "institution": "Texas State Technical College", "program": "Precision Machining Technology", "url": "https://www.tstc.edu/programs/precisionmachiningtechnology/" }
+    ],
+    "2yr": [
+      { "institution": "Texas State Technical College", "program": "Precision Machining Technology (AAS)", "url": "https://www.tstc.edu/programs/precisionmachiningtechnology/" },
+      { "institution": "Texas State Technical College", "program": "Welding Technology (AAS)", "url": "https://www.tstc.edu/programs/weldingtechnology/" },
+      { "institution": "Texas A&M Engineering Academies", "program": "Start at a partner college, finish an engineering degree at A&M", "url": "https://engineering.tamu.edu/academies" }
+    ],
+    "4yr": [
+      { "institution": "Texas A&M University", "program": "Manufacturing & Mechanical Engineering Technology (ETID)", "url": "https://engineering.tamu.edu/etid" },
+      { "institution": "Texas A&M University", "program": "Mechanical Engineering (BS)", "url": "https://engineering.tamu.edu/mechanical" },
+      { "institution": "Texas A&M University", "program": "Materials Science & Engineering (BS)", "url": "https://engineering.tamu.edu/materials" }
+    ],
+    "graduate": [
+      { "institution": "Texas A&M University", "program": "Graduate programs, Mechanical Engineering", "url": "https://engineering.tamu.edu/mechanical" },
+      { "institution": "Texas A&M University", "program": "Graduate programs, Materials Science & Engineering", "url": "https://engineering.tamu.edu/materials" }
+    ]
+  },
+  "space": {
+    "hs": [
+      { "institution": "Texas State Technical College", "program": "Aircraft Airframe Technology", "url": "https://www.tstc.edu/programs/aircraftairframetechnology/" },
+      { "institution": "Texas State Technical College", "program": "Avionics Technology", "url": "https://www.tstc.edu/programs/avionics/" }
+    ],
+    "2yr": [
+      { "institution": "Texas State Technical College", "program": "Avionics Technology (AAS)", "url": "https://www.tstc.edu/programs/avionics/" },
+      { "institution": "Texas State Technical College", "program": "Aircraft Airframe Technology (AAS)", "url": "https://www.tstc.edu/programs/aircraftairframetechnology/" },
+      { "institution": "Texas A&M Engineering Academies", "program": "Start at a partner college, finish an engineering degree at A&M", "url": "https://engineering.tamu.edu/academies" }
+    ],
+    "4yr": [
+      { "institution": "Texas A&M University", "program": "Aerospace Engineering (BS)", "url": "https://engineering.tamu.edu/aerospace" },
+      { "institution": "Texas A&M University", "program": "Electrical & Computer Engineering (BS)", "url": "https://engineering.tamu.edu/electrical" },
+      { "institution": "Texas A&M University", "program": "Mechanical Engineering (BS)", "url": "https://engineering.tamu.edu/mechanical" }
+    ],
+    "graduate": [
+      { "institution": "Texas A&M University", "program": "Graduate programs, Aerospace Engineering", "url": "https://engineering.tamu.edu/aerospace" }
+    ]
+  }
+}

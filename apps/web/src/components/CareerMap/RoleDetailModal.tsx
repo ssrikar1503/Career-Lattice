@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { Role } from '@/lib/types';
 import Modal from '../Modal';
 import { CLUSTER_COLORS, formatSalary } from './constants';
+import { programsFor } from '@/lib/education';
 
 interface Props {
   role:    Role | null;
@@ -175,6 +176,48 @@ export default function RoleDetailModal({ role, anyCount, industrySlug, onClose 
           </ul>
         </div>
       )}
+
+      {/* 3b. Training programs - Texas schools for this role's education tier. */}
+      {(() => {
+        const programs = programsFor(industrySlug, role.degree_required);
+        if (programs.length === 0) return null;
+        return (
+          <div className="px-7 pt-7 pb-8 bg-white border-t border-gray-100">
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ color: bandHex }} aria-hidden="true">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
+              <h3 className="text-[14px] font-bold uppercase tracking-wider text-gray-800">
+                Training Programs &amp; Resources
+              </h3>
+            </div>
+            <p className="text-[12px] text-gray-500 mb-4">
+              Texas programs that prepare you for this role
+            </p>
+            <ul className="space-y-2.5 text-[14px] leading-relaxed">
+              {programs.map(p => (
+                <li key={p.url + p.program} className="flex items-start gap-2.5">
+                  <span
+                    className="mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: bandHex }}
+                    aria-hidden="true"
+                  />
+                  <a
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-800 hover:text-[#500000] underline decoration-[#B7791F] underline-offset-2
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F] rounded"
+                  >
+                    <span className="font-semibold">{p.institution}</span> | {p.program}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })()}
 
       {/* 4. Certifications + CTA - white background, last block of the modal. */}
       {(role.certifications.length > 0 || (worldwideCount > 0 && industrySlug)) && (

@@ -56,3 +56,4 @@ from_client/
 /docs/
 /client_docs/
 .env*
+auto/

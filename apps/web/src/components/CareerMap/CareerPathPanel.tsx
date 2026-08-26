@@ -2,23 +2,25 @@
 
 import type { Role } from '@/lib/types';
 import { CLUSTER_COLORS, formatSalary } from './constants';
+import { programsFor } from '@/lib/education';
 
 interface Props {
   selectedIds: string[];
   roleById: Map<string, Role>;
+  /** Industry slug, used to look up Texas training programs for each step. */
+  industrySlug?: string;
 }
 
 /**
- * Simplified "Your Career Path" panel - matches the Critical Materials reference site.
+ * "Your Career Path" panel.
  *
  * Each row is a bullet (cluster color), role title, tier badge, salary on a second line.
- * No step numbers, no remove buttons, no cluster name text - the visual chain is the map
- * itself. Click-to-truncate (Phase J9) replaces the explicit remove button.
- *
- * Save & Share + Clear actions live in the map's chrome above the panel (Phase J2), not here.
+ * Education stepping stones: before the first role, and before any role whose
+ * degree requirement changes from the previous step, the panel lists the Texas
+ * training programs that prepare you for that step (linked, opens in new tab).
  */
 export default function CareerPathPanel({
-  selectedIds, roleById,
+  selectedIds, roleById, industrySlug,
 }: Props) {
   const chain = selectedIds
     .map(id => roleById.get(id))
@@ -44,27 +46,48 @@ export default function CareerPathPanel({
         </p>
       ) : (
         <ul className="flex flex-col gap-3" role="list">
-          {chain.map(role => {
+          {chain.map((role, i) => {
             const clusterColor = CLUSTER_COLORS[role.cluster] ?? CLUSTER_COLORS['Design & Engineering'];
             const tierLabel = role.seniority.charAt(0).toUpperCase() + role.seniority.slice(1);
+            // Education stepping stones: first step always; later steps only
+            // when the degree requirement changes from the previous role.
+            const showPrograms = i === 0 || chain[i - 1].degree_required !== role.degree_required;
+            const programs = showPrograms ? programsFor(industrySlug, role.degree_required).slice(0, 3) : [];
             return (
-              <li
-                key={role.id}
-                className="flex items-start gap-2.5"
-              >
-                <span
-                  className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${clusterColor?.dot ?? 'bg-gray-400'}`}
-                  aria-hidden="true"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-gray-900">{role.title}</span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-                      {tierLabel}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-600 mt-0.5">
-                    {role.salary_range || `${formatSalary(role.salary_min, role.salary_max)} / year`}
+              <li key={role.id} className="flex flex-col gap-1.5">
+                {programs.length > 0 && (
+                  <ul className="ml-1 pl-3 border-l-2 border-[#e8ddcf] flex flex-col gap-1 mb-1" role="list"
+                      aria-label={`Training programs that prepare you for ${role.title}`}>
+                    {programs.map(p => (
+                      <li key={p.url + p.program} className="text-[12px] leading-snug">
+                        <a
+                          href={p.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-600 hover:text-[#500000] underline decoration-[#B7791F] underline-offset-2
+                                     focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F] rounded"
+                        >
+                          <span className="font-semibold">{p.institution}</span> | {p.program}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="flex items-start gap-2.5">
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${clusterColor?.dot ?? 'bg-gray-400'}`}
+                    aria-hidden="true"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="text-sm font-medium text-gray-900">{role.title}</span>
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                        {tierLabel}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-600 mt-0.5">
+                      {role.salary_range || `${formatSalary(role.salary_min, role.salary_max)} / year`}
+                    </div>
                   </div>
                 </div>
               </li>

@@ -630,6 +630,7 @@ export default function CareerMap({ data }: Props) {
         <CareerPathPanel
           selectedIds={selectedIds}
           roleById={roleById}
+          industrySlug={industry.slug}
         />
 
         {/* Learning paths anchor - Phase J4 will populate; placeholder for "See related learning paths below" link */}
