@@ -123,9 +123,9 @@ def run(
         log.info("STEP 1 — Skipped (--skip-scrape)")
 
     # ── Step 2: Extract ───────────────────────────────────────────────────────
-    # Deterministic extractor — no AI, no token cost. Process the entire raw_jobs
-    # backlog in one run. 25000 is well above the practical company-board total
-    # (~13–15K jobs from all ATSes combined).
+    # Deterministic extractor, no AI, no token cost. batch_size caps how many
+    # NOT-yet-extracted raw_jobs are processed per run (the query itself only
+    # returns unextracted rows, so total table size no longer matters).
     if not skip_extract:
         log.info("=" * 50)
         log.info("STEP 2 — Extractor")

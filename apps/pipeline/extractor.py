@@ -224,47 +224,75 @@ def run_extractor(supabase: Client, anthropic=None, batch_size: int = 200) -> in
     The `anthropic` parameter is accepted for backward compatibility with
     main.py's call signature but is no longer used.
     """
-    # Page through raw_jobs in 1000-row batches — Supabase PostgREST silently
-    # caps a single .limit() call at 1000 rows regardless of what we ask for,
-    # so we use .range() pagination to get past the cap.
+    # Fetch only raw_jobs that have no extracted_jobs row yet, using a
+    # PostgREST anti-join (left embed + is.null on the embedded resource).
+    # The previous approach fetched the first `batch_size` raw_jobs and then
+    # filtered out the already-extracted ones. Once raw_jobs grew past
+    # 25,000 rows (Aug 2026) every new posting landed beyond that window and
+    # was silently never extracted or matched. Oldest first so a backlog
+    # drains in scrape order; .range() pagination because PostgREST caps a
+    # single response at 1000 rows.
     PAGE = 1000
-    all_raw: list[dict] = []
+    to_process: list[dict] = []
     offset = 0
-    while len(all_raw) < batch_size:
-        result = (
-            supabase.table("raw_jobs")
-            .select("id, raw_title, company, raw_description, industry")
-            .range(offset, offset + PAGE - 1)
-            .execute()
-        )
-        rows = result.data or []
-        all_raw.extend(rows)
-        if len(rows) < PAGE:
-            break
-        offset += PAGE
-    all_raw = all_raw[:batch_size]
-    if not all_raw:
-        log.info("No raw jobs found.")
+    try:
+        while len(to_process) < batch_size:
+            result = (
+                supabase.table("raw_jobs")
+                .select("id, raw_title, company, raw_description, industry, extracted_jobs!left(raw_job_id)")
+                .is_("extracted_jobs", "null")
+                .order("created_at")
+                .range(offset, offset + PAGE - 1)
+                .execute()
+            )
+            rows = result.data or []
+            for r in rows:
+                r.pop("extracted_jobs", None)
+            to_process.extend(rows)
+            if len(rows) < PAGE:
+                break
+            offset += PAGE
+        to_process = to_process[:batch_size]
+        log.info(f"Extracting {len(to_process)} new jobs (anti-join query)…")
+    except Exception as e:
+        # Fallback: full uncapped scan of raw_jobs, then filter out ids that
+        # already have an extracted row. Slower (one IN-list request per 100
+        # ids) but does not depend on embedded-resource null filtering.
+        log.warning(f"Anti-join query failed ({e}); falling back to full scan.")
+        all_raw: list[dict] = []
+        offset = 0
+        while True:
+            result = (
+                supabase.table("raw_jobs")
+                .select("id, raw_title, company, raw_description, industry")
+                .order("created_at")
+                .range(offset, offset + PAGE - 1)
+                .execute()
+            )
+            rows = result.data or []
+            all_raw.extend(rows)
+            if len(rows) < PAGE:
+                break
+            offset += PAGE
+        CHUNK_SIZE = 100
+        raw_ids = [r["id"] for r in all_raw]
+        already_done: set[str] = set()
+        for i in range(0, len(raw_ids), CHUNK_SIZE):
+            chunk = raw_ids[i:i + CHUNK_SIZE]
+            extracted_result = (
+                supabase.table("extracted_jobs")
+                .select("raw_job_id")
+                .in_("raw_job_id", chunk)
+                .execute()
+            )
+            for r in (extracted_result.data or []):
+                already_done.add(r["raw_job_id"])
+        to_process = [r for r in all_raw if r["id"] not in already_done][:batch_size]
+        log.info(f"Extracting {len(to_process)} new jobs (skipping {len(already_done)} already done, scanned {len(all_raw)})…")
+
+    if not to_process:
+        log.info("No new raw jobs to extract.")
         return 0
-
-    # Filter already-extracted in chunks — PostgREST rejects >~1000-UUID IN
-    # lists because of URL length, so chunk to 100.
-    CHUNK_SIZE = 100
-    raw_ids = [r["id"] for r in all_raw]
-    already_done: set[str] = set()
-    for i in range(0, len(raw_ids), CHUNK_SIZE):
-        chunk = raw_ids[i:i + CHUNK_SIZE]
-        extracted_result = (
-            supabase.table("extracted_jobs")
-            .select("raw_job_id")
-            .in_("raw_job_id", chunk)
-            .execute()
-        )
-        for r in (extracted_result.data or []):
-            already_done.add(r["raw_job_id"])
-    to_process = [r for r in all_raw if r["id"] not in already_done]
-
-    log.info(f"Extracting {len(to_process)} new jobs (skipping {len(already_done)} already done)…")
 
     # Build all rows up-front (deterministic parsing — no I/O), then batch
     # insert. Per-row inserts on 15K-row backlogs took 30-60 minutes and risked
