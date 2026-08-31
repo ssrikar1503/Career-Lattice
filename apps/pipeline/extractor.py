@@ -241,7 +241,7 @@ def run_extractor(supabase: Client, anthropic=None, batch_size: int = 200) -> in
                 supabase.table("raw_jobs")
                 .select("id, raw_title, company, raw_description, industry, extracted_jobs!left(raw_job_id)")
                 .is_("extracted_jobs", "null")
-                .order("created_at")
+                .order("created_at").order("id")
                 .range(offset, offset + PAGE - 1)
                 .execute()
             )
@@ -265,7 +265,7 @@ def run_extractor(supabase: Client, anthropic=None, batch_size: int = 200) -> in
             result = (
                 supabase.table("raw_jobs")
                 .select("id, raw_title, company, raw_description, industry")
-                .order("created_at")
+                .order("created_at").order("id")
                 .range(offset, offset + PAGE - 1)
                 .execute()
             )
