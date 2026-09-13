@@ -310,7 +310,7 @@ export default function AgentChat({ data }: Props) {
       {open && (
         <div
           className="fixed bottom-20 right-6 z-40 flex flex-col bg-white rounded-2xl
-                     shadow-2xl border border-[#e8ddcf] overflow-hidden
+                     shadow-2xl border border-[#e2e2e2] overflow-hidden
                      w-[calc(100vw-3rem)] sm:w-96"
           style={{ height: 'min(580px, calc(100vh - 160px))' }}
           role="dialog"
@@ -374,8 +374,8 @@ export default function AgentChat({ data }: Props) {
                   <button
                     key={prompt}
                     onClick={() => sendMessage(prompt)}
-                    className="text-left text-xs px-3 py-2.5 rounded-xl border border-[#e0d5c2] bg-[#FAF7F2]
-                               text-gray-700 hover:bg-[#f3ead9] hover:border-[#B7791F] transition-colors
+                    className="text-left text-xs px-3 py-2.5 rounded-xl border border-[#e2e2e2] bg-[#FFFFFF]
+                               text-gray-700 hover:bg-[#f5f5f5] hover:border-[#B7791F] transition-colors
                                focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F]"
                   >
                     {prompt}
@@ -397,7 +397,7 @@ export default function AgentChat({ data }: Props) {
                       ? 'text-white rounded-br-sm'
                       : msg.error
                       ? 'bg-red-50 text-red-700 border border-red-200 rounded-bl-sm'
-                      : 'bg-[#f5f0e6] text-gray-800 rounded-bl-sm',
+                      : 'bg-[#f5f5f5] text-gray-800 rounded-bl-sm',
                   ].join(' ')}
                   style={msg.role === 'user' ? { backgroundColor: data.industry.color } : {}}
                 >
@@ -465,7 +465,7 @@ export default function AgentChat({ data }: Props) {
           {/* Input area */}
           <form
             onSubmit={handleSubmit}
-            className="flex-shrink-0 px-3 py-3 border-t border-[#e8ddcf] bg-white flex items-end gap-2"
+            className="flex-shrink-0 px-3 py-3 border-t border-[#e2e2e2] bg-white flex items-end gap-2"
           >
             <textarea
               ref={inputRef}
@@ -475,7 +475,7 @@ export default function AgentChat({ data }: Props) {
               placeholder="Ask about careers, skills, salaries…"
               rows={1}
               disabled={streaming}
-              className="flex-1 resize-none bg-[#FAF7F2] border border-[#ddd0bb] rounded-xl
+              className="flex-1 resize-none bg-[#FFFFFF] border border-[#d9d9d9] rounded-xl
                          px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400
                          focus:outline-none focus:border-[#500000]
                          disabled:opacity-50 max-h-32 overflow-y-auto"
@@ -507,7 +507,7 @@ export default function AgentChat({ data }: Props) {
           </form>
 
           {/* Footer disclaimer - names Rev explicitly */}
-          <p className="text-center text-[10px] text-gray-500 leading-snug py-2 px-3 bg-[#FAF7F2] flex-shrink-0">
+          <p className="text-center text-[10px] text-gray-500 leading-snug py-2 px-3 bg-[#FFFFFF] flex-shrink-0">
             <DolphIQWordmark /> is an AI guide. Responses may be inaccurate - verify with a human advisor before major decisions.
           </p>
         </div>

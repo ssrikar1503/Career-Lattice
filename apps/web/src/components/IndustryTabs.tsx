@@ -16,7 +16,7 @@ export default function IndustryTabs({ industryName }: Props) {
 
   return (
     <>
-      <div className="border-b border-[#e8ddcf] mb-10 flex items-center gap-6">
+      <div className="border-b border-[#e2e2e2] mb-10 flex items-center gap-6">
         <button
           type="button"
           className="pb-3 text-sm font-semibold text-[#500000] border-b-2 border-[#B7791F]"

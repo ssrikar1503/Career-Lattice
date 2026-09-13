@@ -75,7 +75,7 @@ export default function CareerPathPanel({
                   <button
                     type="button"
                     onClick={() => toggleStep(role.id)}
-                    className="self-start ml-1 pl-3 border-l-2 border-[#e8ddcf] flex items-center gap-1.5
+                    className="self-start ml-1 pl-3 border-l-2 border-[#e2e2e2] flex items-center gap-1.5
                                text-[12px] text-gray-500 hover:text-[#500000] transition-colors
                                focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F] rounded"
                     aria-expanded={false}
@@ -91,7 +91,7 @@ export default function CareerPathPanel({
                   <button
                     type="button"
                     onClick={() => toggleStep(role.id)}
-                    className="self-start ml-1 pl-3 border-l-2 border-[#e8ddcf] flex items-center gap-1.5
+                    className="self-start ml-1 pl-3 border-l-2 border-[#e2e2e2] flex items-center gap-1.5
                                text-[12px] text-gray-500 hover:text-[#500000] transition-colors
                                focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F] rounded"
                     aria-expanded={true}
@@ -104,7 +104,7 @@ export default function CareerPathPanel({
                   </button>
                 )}
                 {programs.length > 0 && (
-                  <ul className="ml-1 pl-3 border-l-2 border-[#e8ddcf] flex flex-col gap-1 mb-1" role="list"
+                  <ul className="ml-1 pl-3 border-l-2 border-[#e2e2e2] flex flex-col gap-1 mb-1" role="list"
                       aria-label={`Training programs that prepare you for ${role.title}`}>
                     {programs.map(p => (
                       <li key={p.url + p.program} className="text-[12px] leading-snug">

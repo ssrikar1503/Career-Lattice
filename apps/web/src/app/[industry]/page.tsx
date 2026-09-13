@@ -48,7 +48,7 @@ export default async function IndustryMapPage({ params }: Props) {
   const { industry } = data;
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] flex flex-col">
+    <div className="min-h-screen bg-[#FFFFFF] flex flex-col">
 
       {/* Skip to main content (accessibility) */}
       <a
@@ -116,7 +116,7 @@ export default async function IndustryMapPage({ params }: Props) {
       </main>
 
       {/* Minimal footer - matches reference site */}
-      <footer className="border-t border-[#e8ddcf] bg-[#FAF7F2]" role="contentinfo">
+      <footer className="border-t border-[#e2e2e2] bg-[#FFFFFF]" role="contentinfo">
         <div className="max-w-[1508px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-center gap-3 text-xs text-gray-500">
           <span className="text-[#500000] font-semibold">Texas A&M Engineering Experiment Station</span>
           <span aria-hidden="true">|</span>
