@@ -16,6 +16,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { formatSalary } from '@/components/CareerMap/constants';
 import { programsFor } from '@/lib/education';
+import { setResumeProfile, openRevChat } from '@/lib/resume-profile';
 
 interface MatchResult {
   role_id:         string;
@@ -71,8 +72,20 @@ export default function ResumeAnalyzer({ industrySlug }: { industrySlug: string 
         setPhase('error');
         return;
       }
-      setResult(body as AnalysisResult);
+      const r = body as AnalysisResult;
+      setResult(r);
       setPhase('done');
+      // Hand the profile (never the resume text) to Rev so follow-up chat
+      // questions are grounded in this analysis.
+      setResumeProfile({
+        current_title:    r.current_title,
+        years_experience: r.years_experience,
+        education_level:  r.education_level,
+        summary:          r.summary,
+        best_industry:    r.best_industry,
+        top_matches:      r.matches.map(m => ({ role_id: m.role_id, title: m.title, confidence: m.confidence })),
+        gap_skills:       r.matches[0]?.gap_skills ?? [],
+      });
     } catch {
       setError('Network problem while uploading. Please try again.');
       setPhase('error');
@@ -238,6 +251,16 @@ export default function ResumeAnalyzer({ industrySlug }: { industrySlug: string 
                        focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B7791F]"
           >
             Show my recommended path on the map ({result.recommended_path.length} steps)
+          </button>
+
+          <button
+            type="button"
+            onClick={() => openRevChat(`How do I close my skill gaps for the ${result.matches[0]?.title ?? 'recommended'} role?`)}
+            className="mt-2 w-full px-4 py-2.5 rounded-lg border border-[#500000] text-[#500000] text-sm font-semibold
+                       hover:bg-[#f5f5f5] transition-colors
+                       focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B7791F]"
+          >
+            Ask Rev about my results
           </button>
 
           {/* Education for the top match's tier */}

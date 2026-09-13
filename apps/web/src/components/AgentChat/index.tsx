@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import type { IndustryData } from '@/lib/types';
 import DolphIQIcon, { DolphIQWordmark } from '../DolphIQIcon';
+import { getResumeProfile } from '@/lib/resume-profile';
 
 interface Message {
   id: string;
@@ -128,6 +129,20 @@ export default function AgentChat({ data }: Props) {
     document.getElementById('career-map')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [router, pathname]);
 
+  // Open-chat requests from other components (e.g. the resume analyzer).
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      setOpen(true);
+      const prefill = (e as CustomEvent<{ prefill?: string }>).detail?.prefill;
+      if (prefill) {
+        setInput(prefill);
+        setTimeout(() => inputRef.current?.focus(), 350);
+      }
+    };
+    window.addEventListener('rev:open', onOpen);
+    return () => window.removeEventListener('rev:open', onOpen);
+  }, []);
+
   // Load suggested prompts
   useEffect(() => {
     fetch(`/api/agent/chat?industry=${data.industry.slug}`)
@@ -184,6 +199,7 @@ export default function AgentChat({ data }: Props) {
           industry: data.industry.slug,
           history,
           ...(path.length > 0 ? { path } : {}),
+          ...(getResumeProfile() ? { resumeProfile: getResumeProfile() } : {}),
         }),
         signal: abortRef.current.signal,
       });

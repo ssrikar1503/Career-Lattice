@@ -19,7 +19,32 @@ import { getLiveOpeningsBlock } from '@/lib/live-openings';
 
 
 
-function buildSystemPrompt(context: string, industryName: string, selectedPath?: string, openingsBlock?: string): string {
+/** Sanitize the client-supplied resume profile (untrusted input) into a
+ *  bounded prompt section. Role ids are validated against the taxonomy. */
+function buildResumeSection(raw: unknown): string | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const p = raw as Record<string, unknown>;
+  const str = (v: unknown, max: number) => String(v ?? '').replace(/[\r\n]+/g, ' ').slice(0, max);
+  const industry = str(p.best_industry, 40);
+  const data = INDUSTRY_MAP[industry];
+  if (!data) return undefined;
+  const validIds = new Set(data.roles.map(r => r.id));
+  const matches = (Array.isArray(p.top_matches) ? p.top_matches : [])
+    .filter((m): m is { role_id: unknown; title: unknown; confidence: unknown } => !!m && typeof m === 'object')
+    .filter(m => validIds.has(String(m.role_id)))
+    .slice(0, 3)
+    .map(m => `[${String(m.role_id)}] ${str(m.title, 80)} (${Math.round(Math.max(0, Math.min(1, Number(m.confidence) || 0)) * 100)}% fit)`);
+  if (matches.length === 0) return undefined;
+  const gaps = (Array.isArray(p.gap_skills) ? p.gap_skills : []).map(v => str(v, 60)).filter(Boolean).slice(0, 5);
+  return `\n\nUSER'S RESUME PROFILE (from their uploaded resume, analyzed this session):
+Current title: ${str(p.current_title, 120)} | Experience: ${Math.max(0, Math.min(60, Number(p.years_experience) || 0))} years | Education: ${str(p.education_level, 12)}
+Background: ${str(p.summary, 600)}
+Their top role matches on the ${data.industry.name} map: ${matches.join('; ')}
+Skill gaps for their top match: ${gaps.join(', ') || 'none identified'}
+Ground your answers in this real background: when they ask about "my skills", "my gaps", "my fit", or what to do next, use THIS profile instead of asking them to describe themselves. Current-situation PATH recommendations should start from their top match unless they say otherwise. Do not repeat the whole profile back to them.`;
+}
+
+function buildSystemPrompt(context: string, industryName: string, selectedPath?: string, openingsBlock?: string, resumeSection?: string): string {
   const pathSection = selectedPath
     ? `\n\nUSER'S SELECTED PATH:
 The user has currently built this career path on the map (in order):
@@ -30,7 +55,7 @@ When they say "my path", "this path", or "my selection", they mean these roles. 
     ? `\n\n${openingsBlock}
 Use this data when asked about current job openings - how many there are, which companies are hiring, and where. It refreshes weekly from real company job boards, so qualify counts with "as of this week". A role absent from this list has no verified openings right now - say that plainly instead of guessing. For the full listings with application links, tell the user to click the role on the map and open its openings page. Openings answers follow the same formatting rules as everything else: plain conversational sentences, NO markdown bold/headings/bullets.`
     : '';
-  return buildSystemPromptBase(context, industryName) + openingsSection + pathSection;
+  return buildSystemPromptBase(context, industryName) + openingsSection + (resumeSection ?? '') + pathSection;
 }
 
 function buildSystemPromptBase(context: string, industryName: string): string {
@@ -140,7 +165,7 @@ export async function POST(request: Request) {
   }
 
   // ── 2. Parse and validate request ──────────────────────────────────────────
-  let body: { message: string; industry: string; history: Array<{ role: 'user' | 'assistant'; content: string }>; path?: string[] };
+  let body: { message: string; industry: string; history: Array<{ role: 'user' | 'assistant'; content: string }>; path?: string[]; resumeProfile?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -179,7 +204,8 @@ export async function POST(request: Request) {
   );
   const openingsBlock = openingsBlocks.filter(Boolean).join('\n\n');
 
-  const system = buildSystemPrompt(context, data.industry.name, selectedPath, openingsBlock);
+  const resumeSection = buildResumeSection(body.resumeProfile);
+  const system = buildSystemPrompt(context, data.industry.name, selectedPath, openingsBlock, resumeSection);
 
   // Keep last 8 turns to control token cost
   const messages = [
