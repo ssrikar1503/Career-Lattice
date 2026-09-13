@@ -40,25 +40,28 @@ function sniffType(buf: Uint8Array): 'pdf' | 'docx' | 'legacy-doc' | 'unknown' {
   return 'unknown';
 }
 
-async function extractResumeText(buf: ArrayBuffer): Promise<{ text?: string; error?: string; status?: number }> {
-  const bytes = new Uint8Array(buf);
+async function extractResumeText(buf: ArrayBuffer): Promise<{ text?: string; kind: string; error?: string; status?: number }> {
+  // NOTE: pdf.js DETACHES the ArrayBuffer it is given (transfers it to its
+  // parser), so the buffer must never be touched again after extraction.
+  // Sniff the type first and carry it in the result.
+  const bytes = new Uint8Array(buf.slice(0));
   const kind = sniffType(bytes);
   try {
     if (kind === 'pdf') {
       const pdf = await getDocumentProxy(bytes);
       const { text } = await extractText(pdf, { mergePages: true });
-      return { text: String(text ?? '') };
+      return { text: String(text ?? ''), kind };
     }
     if (kind === 'docx') {
       const { value } = await mammoth.extractRawText({ buffer: Buffer.from(buf) });
-      return { text: value ?? '' };
+      return { text: value ?? '', kind };
     }
     if (kind === 'legacy-doc') {
-      return { error: 'Legacy .doc files are not supported. Please save your resume as PDF or DOCX and try again.', status: 415 };
+      return { kind, error: 'Legacy .doc files are not supported. Please save your resume as PDF or DOCX and try again.', status: 415 };
     }
-    return { error: 'Unsupported file type. Please upload your resume as a PDF or DOCX file.', status: 415 };
+    return { kind, error: 'Unsupported file type. Please upload your resume as a PDF or DOCX file.', status: 415 };
   } catch {
-    return { error: 'We could not read that file. Please re-export your resume as a PDF and try again.', status: 422 };
+    return { kind, error: 'We could not read that file. Please re-export your resume as a PDF and try again.', status: 422 };
   }
 }
 
@@ -249,7 +252,7 @@ export async function POST(request: Request) {
     });
 
     // Log timing + sizes ONLY. Never resume content.
-    console.log(`[resume] ok in ${Date.now() - t0}ms | ${file.size}b ${sniffType(new Uint8Array(buf))} | ${text.length} chars | ${checked.data.best_industry}`);
+    console.log(`[resume] ok in ${Date.now() - t0}ms | ${file.size}b ${extracted.kind} | ${text.length} chars | ${checked.data.best_industry}`);
 
     return Response.json({
       ...checked.data,
