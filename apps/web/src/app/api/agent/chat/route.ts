@@ -12,39 +12,12 @@
  */
 
 import type { IndustryData } from '@/lib/types';
+import { INDUSTRY_MAP, buildContext, buildAllContext } from '@/lib/taxonomy-context';
 import { streamWithFallback } from '@/lib/ai-providers';
 import { checkRateLimit, LIMITS, getClientIp } from '@/lib/rate-limit';
 import { getLiveOpeningsBlock } from '@/lib/live-openings';
 
-import amData    from '@/data/additive-manufacturing.json';
-import semiData  from '@/data/semiconductors.json';
-import spaceData from '@/data/space.json';
 
-const INDUSTRY_MAP: Record<string, IndustryData> = {
-  'additive-manufacturing': amData    as IndustryData,
-  'semiconductors':         semiData  as IndustryData,
-  'space':                  spaceData as IndustryData,
-};
-
-// ── Taxonomy context builder ───────────────────────────────────────────────────
-function buildContext(data: IndustryData): string {
-  const roles = data.roles.map(r =>
-    `[${r.id}] ${r.title} | ${r.cluster} | ${r.seniority} | ` +
-    `$${Math.round(r.salary_min / 1000)}k–$${Math.round(r.salary_max / 1000)}k | ` +
-    `${r.degree_required} | Skills: ${r.skills.slice(0, 5).map(s => s.name).join(', ')}`
-  ).join('\n');
-
-  const pathways = data.pathways.map(p =>
-    `${p.name}: ${p.role_ids.join(' → ')}`
-  ).join('\n');
-
-  return `=== ${data.industry.name} (map: ${data.industry.slug}) ===\n${roles}` +
-    (pathways ? `\n\n=== ${data.industry.name} Career Pathways ===\n${pathways}` : '');
-}
-
-function buildAllContext(): string {
-  return Object.values(INDUSTRY_MAP).map(d => buildContext(d)).join('\n\n');
-}
 
 function buildSystemPrompt(context: string, industryName: string, selectedPath?: string, openingsBlock?: string): string {
   const pathSection = selectedPath

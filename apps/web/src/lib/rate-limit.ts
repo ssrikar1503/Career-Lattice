@@ -84,6 +84,9 @@ export const LIMITS = {
   // AI chat: 15 per hour, 80 per day per IP
   chat_hourly: { windowMs: 60 * 60 * 1000,      maxRequests: 15  },
   chat_daily:  { windowMs: 24 * 60 * 60 * 1000, maxRequests: 80  },
+  // Resume analysis: heavier per-request cost than chat, so tighter caps
+  resume_hourly: { windowMs: 60 * 60 * 1000,      maxRequests: 6  },
+  resume_daily:  { windowMs: 24 * 60 * 60 * 1000, maxRequests: 20 },
   // Admin actions: generous limits, it's a password-gated single user
   admin:       { windowMs: 60 * 60 * 1000,       maxRequests: 300 },
 } satisfies Record<string, RateLimitConfig>;

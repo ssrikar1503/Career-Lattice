@@ -17,6 +17,7 @@ import RoleCard from './RoleCard';
 import PathwayLines from './PathwayLines';
 import PathChain from './PathChain';
 import CareerPathPanel from './CareerPathPanel';
+import ResumeAnalyzer from '@/components/ResumeAnalyzer';
 import SaveShareModal from './SaveShareModal';
 import ErrorModal from './ErrorModal';
 import RoleDetailModal from './RoleDetailModal';
@@ -625,6 +626,9 @@ export default function CareerMap({ data }: Props) {
             Save it &amp; Share it here
           </button>
         </div>
+
+        {/* Resume analyzer - upload a resume, get matched onto the map */}
+        <ResumeAnalyzer industrySlug={industry.slug} />
 
         {/* Your Career Path panel - simplified display only (Phase J5) */}
         <CareerPathPanel
