@@ -93,10 +93,16 @@ export const LIMITS = {
 
 // ── Extract real IP from Next.js request ──────────────────────────────────────
 export function getClientIp(request: Request): string {
+  // Trust order matters: x-forwarded-for's FIRST entry is client-supplied
+  // (an attacker can set it to rotate fake IPs and bypass rate limits).
+  // On Vercel, x-real-ip is set by the platform and is trustworthy; the
+  // LAST x-forwarded-for entry is the platform-appended real address.
+  const xff = request.headers.get('x-forwarded-for');
+  const lastForwarded = xff ? xff.split(',').at(-1)?.trim() : undefined;
   return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip')                              ||
-    request.headers.get('cf-connecting-ip')                       || // Cloudflare
+    request.headers.get('x-real-ip')          ||
+    request.headers.get('cf-connecting-ip')   || // Cloudflare
+    lastForwarded                             ||
     'unknown'
   );
 }

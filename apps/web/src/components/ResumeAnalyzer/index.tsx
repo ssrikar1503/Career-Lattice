@@ -40,7 +40,7 @@ interface AnalysisResult {
   recommended_path: string[];
 }
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024;
 const ACCEPT = '.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 type Phase = 'idle' | 'uploading' | 'done' | 'error';
@@ -56,7 +56,7 @@ export default function ResumeAnalyzer({ industrySlug }: { industrySlug: string 
 
   const analyze = useCallback(async (file: File) => {
     setError('');
-    if (file.size > MAX_BYTES) { setError('File is too large. Please keep it under 5 MB.'); setPhase('error'); return; }
+    if (file.size > MAX_BYTES) { setError('File is too large. Please keep it under 4 MB.'); setPhase('error'); return; }
     const okType = /\.(pdf|docx)$/i.test(file.name);
     if (!okType) { setError('Please upload a PDF or DOCX file.'); setPhase('error'); return; }
 
@@ -131,7 +131,7 @@ export default function ResumeAnalyzer({ industrySlug }: { industrySlug: string 
           <div
             role="button"
             tabIndex={0}
-            aria-label="Upload your resume, PDF or DOCX, max 5 megabytes"
+            aria-label="Upload your resume, PDF or DOCX, max 4 megabytes"
             onClick={() => inputRef.current?.click()}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inputRef.current?.click(); } }}
             onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -148,7 +148,7 @@ export default function ResumeAnalyzer({ industrySlug }: { industrySlug: string 
               <path d="M17 8l-5-5-5 5" /><path d="M12 3v12" />
             </svg>
             <span className="text-sm font-medium text-gray-700">Drop your resume here or click to browse</span>
-            <span className="text-[11px] text-gray-400">PDF or DOCX, up to 5 MB</span>
+            <span className="text-[11px] text-gray-400">PDF or DOCX, up to 4 MB</span>
           </div>
           <input
             ref={inputRef}

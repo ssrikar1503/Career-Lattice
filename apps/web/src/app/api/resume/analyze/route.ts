@@ -27,7 +27,7 @@ import { buildAllContext, validRoleIds, INDUSTRY_MAP } from '@/lib/taxonomy-cont
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_FILE_BYTES = 4 * 1024 * 1024; // 4 MB - Vercel hard-rejects request bodies over ~4.5 MB before our handler runs, so our friendly error must trigger below that
 const MAX_TEXT_CHARS = 20_000;          // ~5 pages of dense text
 const MIN_TEXT_CHARS = 200;             // below this it's likely a scanned image
 const AI_TIMEOUT_MS  = 45_000;
@@ -121,7 +121,8 @@ RULES:
 3. "matched_skills" and "gap_skills" must come from that role's skill list in the taxonomy (2-4 each). Do not invent skills.
 4. "recommended_path": 3 to 6 role_ids from best_industry, ordered from where they'd start (usually your top match) toward more senior roles. Prefer sequences from the Career Pathways lists. This is a growth path, not a list of alternatives.
 5. Choose best_industry by evidence in the resume, not by which map is most popular. Software/electronics evidence often fits semiconductors; machining/welding/QA often fits additive manufacturing; systems/aerospace/mission work often fits space.
-6. "is_resume" is false when the document is NOT primarily a person's work history / CV - e.g. an invoice, quotation, report, essay, slide deck, article, form, or random text. In that case set "document_kind" honestly, set matches to [] and recommended_path to [], and leave the other fields as empty strings or 0. Do NOT invent matches for a document that is not a resume. A thin but genuine resume (a student with one job) IS a resume.`;
+6. "is_resume" is about DOCUMENT TYPE ONLY, not field relevance: it is false ONLY when the document is not a person's work history / CV at all - e.g. an invoice, quotation, report, essay, slide deck, article, form, or random text. In that case set "document_kind" honestly, set matches to [] and recommended_path to [], and leave the other fields as empty strings or 0. A thin resume (a student with one job) IS a resume. A resume from a completely different field (a chef, a teacher, a cashier) IS a resume.
+7. For a genuine resume from an unrelated field, DO return 3 matches: pick the entry-level roles where their transferable skills (quality focus, equipment handling, team leadership, documentation, safety) count for the most, with honest LOW confidence (0.25-0.50), gap_skills showing what they would need to learn, and a "why" that frames it as a career-change starting point. recommended_path then starts from that entry role. Never return empty matches for a real resume.`;
 }
 
 function validateAnalysis(raw: unknown): { ok: true; data: ResumeAnalysis } | { ok: false; reason: string } | { notResume: true; kind: string } {
@@ -147,8 +148,12 @@ function validateAnalysis(raw: unknown): { ok: true; data: ResumeAnalysis } | { 
   if (matches.length === 0) return { ok: false, reason: 'no valid role_ids in matches' };
   const path = (Array.isArray(a.recommended_path) ? a.recommended_path : [])
     .map(String).filter(id => valid.has(id));
-  const dedupedPath = [...new Set(path)].slice(0, 6);
-  if (dedupedPath.length === 0) return { ok: false, reason: 'no valid role_ids in recommended_path' };
+  let dedupedPath = [...new Set(path)].slice(0, 6);
+  if (dedupedPath.length === 0) {
+    // Fallback: a good analysis should not die on a malformed path field.
+    // Use the matched roles (confidence order) as a minimal path instead.
+    dedupedPath = matches.map(m => m.role_id);
+  }
   const level = ['hs', '2yr', '4yr', 'graduate'].includes(String(a.education_level)) ? String(a.education_level) : '4yr';
   return {
     ok: true,
@@ -206,7 +211,7 @@ export async function POST(request: Request) {
   const file = form.get('file');
   if (!(file instanceof File)) return Response.json({ error: 'No file received.' }, { status: 400 });
   if (file.size === 0)               return Response.json({ error: 'That file is empty.' }, { status: 422 });
-  if (file.size > MAX_FILE_BYTES)    return Response.json({ error: 'File is too large. Please keep it under 5 MB.' }, { status: 413 });
+  if (file.size > MAX_FILE_BYTES)    return Response.json({ error: 'File is too large. Please keep it under 4 MB.' }, { status: 413 });
 
   const t0 = Date.now();
   const buf = await file.arrayBuffer();
