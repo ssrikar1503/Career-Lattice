@@ -375,7 +375,7 @@ export default function CareerMap({ data }: Props) {
       <div className="hidden md:block">
         <div
           className="relative mx-auto bg-gray-50/40"
-          style={{ width: totalWidth, height: totalHeight, userSelect: 'none' }}
+          style={{ width: totalWidth, height: totalHeight, left: -12, userSelect: 'none' }}
           role="region"
           aria-label={`${industry.name} career pathway map`}
           onDoubleClick={handleRoleDoubleClick}
