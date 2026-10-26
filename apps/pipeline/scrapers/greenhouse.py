@@ -61,7 +61,9 @@ def scrape_company(company: dict, supabase: Client, industry: str, dead_slugs: l
     company_slug = company["slug"]
     url = BASE_URL.format(company=company_slug)
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=15)
+        # 90s read timeout: giant boards (SpaceX ~2,800 jobs with full descriptions)
+        # return multi-MB payloads that a 15s timeout cut off mid-download.
+        resp = requests.get(url, headers=HEADERS, timeout=(15, 90))
         resp.raise_for_status()
     except requests.exceptions.HTTPError as e:
         if resp.status_code == 404:
