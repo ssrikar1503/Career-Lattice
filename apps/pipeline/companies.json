@@ -13,11 +13,6 @@
   },
   "companies": [
     {
-      "slug": "carbon",
-      "ats": "greenhouse",
-      "industry": "additive-manufacturing"
-    },
-    {
       "slug": "markforged",
       "ats": "greenhouse",
       "industry": "additive-manufacturing"
@@ -284,6 +279,149 @@
         "quality",
         "additive"
       ]
+    },
+    {
+      "slug": "kla",
+      "ats": "workday",
+      "industry": "semiconductors",
+      "tenant": "kla",
+      "wd": 1,
+      "site": "Search",
+      "title_keywords": [
+        "technician",
+        "manufacturing",
+        "process",
+        "test",
+        "quality",
+        "additive"
+      ]
+    },
+    {
+      "slug": "analogdevices",
+      "ats": "workday",
+      "industry": "semiconductors",
+      "tenant": "analogdevices",
+      "wd": 1,
+      "site": "External",
+      "title_keywords": [
+        "technician",
+        "manufacturing",
+        "process",
+        "test",
+        "quality",
+        "additive"
+      ]
+    },
+    {
+      "slug": "globalfoundries",
+      "ats": "workday",
+      "industry": "semiconductors",
+      "tenant": "globalfoundries",
+      "wd": 1,
+      "site": "External"
+    },
+    {
+      "slug": "wolfspeed",
+      "ats": "workday",
+      "industry": "semiconductors",
+      "tenant": "cree",
+      "wd": 108,
+      "site": "EXT"
+    },
+    {
+      "slug": "sierraspace",
+      "ats": "workday",
+      "industry": "space",
+      "tenant": "sierraspace",
+      "wd": 1,
+      "site": "Sierra_Space_External_Career_Site"
+    },
+    {
+      "slug": "relativity",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "vardaspace",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "stokespacetechnologies",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "trueanomalyinc",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "k2spacecorporation",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "muonspace",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "hermeus",
+      "ats": "lever",
+      "industry": "space"
+    },
+    {
+      "slug": "vast",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "geaerospace",
+      "ats": "workday",
+      "industry": "additive-manufacturing",
+      "tenant": "geaerospace",
+      "wd": 5,
+      "site": "GE_ExternalSite",
+      "title_keywords": [
+        "additive",
+        "3d print"
+      ]
+    },
+    {
+      "slug": "velo3d",
+      "ats": "lever",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "formlabs",
+      "ats": "greenhouse",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "divergent",
+      "ats": "greenhouse",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "MachinaLabs",
+      "ats": "lever",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "freeformfuturecorp",
+      "ats": "greenhouse",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "rangeviewinc",
+      "ats": "greenhouse",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "ursamajor",
+      "ats": "greenhouse",
+      "industry": "additive-manufacturing"
     }
   ]
 }
