@@ -13,12 +13,17 @@ from datetime import datetime, timezone
 from supabase import Client
 
 from companies_loader import grouped_by_industry
+from scrapers.filters import title_passes
 
 log = logging.getLogger(__name__)
 
 # No per-company cap. Deterministic scraper — AI cost is downstream.
 
-BASE_URL = "https://api.lever.co/v0/postings/{company}?mode=json"
+# Lever runs separate US and EU instances with the same API shape. A company
+# hosted on the EU instance (e.g. Cirrus Logic) 404s on the US one, so
+# companies.json can set "region": "eu" to switch hosts.
+BASE_URL    = "https://api.lever.co/v0/postings/{company}?mode=json"
+BASE_URL_EU = "https://api.eu.lever.co/v0/postings/{company}?mode=json"
 HEADERS  = {"User-Agent": "CareerPathwaysPlatform/1.0 (workforce-research)"}
 
 # Batch upserts — see greenhouse.py for rationale.
@@ -43,8 +48,10 @@ def _batch_upsert(supabase: Client, rows: list[dict], company_slug: str) -> int:
     return inserted
 
 
-def scrape_company(company_slug: str, supabase: Client, industry: str, dead_slugs: list[str]) -> int:
-    url = BASE_URL.format(company=company_slug)
+def scrape_company(company: dict, supabase: Client, industry: str, dead_slugs: list[str]) -> int:
+    company_slug = company["slug"]
+    base = BASE_URL_EU if company.get("region") == "eu" else BASE_URL
+    url = base.format(company=company_slug)
     try:
         resp = requests.get(url, headers=HEADERS, timeout=15)
         resp.raise_for_status()
@@ -66,6 +73,8 @@ def scrape_company(company_slug: str, supabase: Client, industry: str, dead_slug
     for posting in postings:
         job_url = posting.get("hostedUrl") or posting.get("applyUrl", "")
         if not job_url:
+            continue
+        if not title_passes(posting.get("text", ""), company):
             continue
 
         # Lever returns description as HTML — store raw, extractor will clean it
@@ -101,8 +110,7 @@ def run_lever(supabase: Client, industries: list[str] | None = None) -> dict[str
         total = 0
         log.info(f"Scraping Lever for {industry} ({len(rows)} companies)…")
         for row in rows:
-            slug = row["slug"]
-            n = scrape_company(slug, supabase, industry, dead_slugs)
+            n = scrape_company(row, supabase, industry, dead_slugs)
             total += n
             time.sleep(1)
         totals[industry] = total

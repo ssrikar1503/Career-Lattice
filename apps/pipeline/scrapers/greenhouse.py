@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from supabase import Client
 
 from companies_loader import grouped_by_industry
+from scrapers.filters import title_passes
 
 log = logging.getLogger(__name__)
 
@@ -50,13 +51,14 @@ def _batch_upsert(supabase: Client, rows: list[dict], company_slug: str) -> int:
     return inserted
 
 
-def scrape_company(company_slug: str, supabase: Client, industry: str, dead_slugs: list[str]) -> int:
+def scrape_company(company: dict, supabase: Client, industry: str, dead_slugs: list[str]) -> int:
     """Fetch all jobs for a Greenhouse company and upsert to raw_jobs.
 
     `dead_slugs` is a shared list the caller passes in; we append to it when
     we get a 404 so the orchestrator can summarise dead boards at the end
     of the run (the 404 summary required by Phase 2.3).
     """
+    company_slug = company["slug"]
     url = BASE_URL.format(company=company_slug)
     try:
         resp = requests.get(url, headers=HEADERS, timeout=15)
@@ -78,6 +80,8 @@ def scrape_company(company_slug: str, supabase: Client, industry: str, dead_slug
     for job in jobs:
         job_url = job.get("absolute_url") or job.get("url", "")
         if not job_url:
+            continue
+        if not title_passes(job.get("title", ""), company):
             continue
 
         # Prepend a structured LOCATION: line so the deterministic extractor can
@@ -111,8 +115,7 @@ def run_greenhouse(supabase: Client, industries: list[str] | None = None) -> dic
         total = 0
         log.info(f"Scraping Greenhouse for {industry} ({len(rows)} companies)…")
         for row in rows:
-            slug = row["slug"]
-            n = scrape_company(slug, supabase, industry, dead_slugs)
+            n = scrape_company(row, supabase, industry, dead_slugs)
             total += n
             time.sleep(1)  # be polite to the API
         totals[industry] = total

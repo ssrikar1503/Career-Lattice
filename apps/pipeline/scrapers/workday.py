@@ -36,6 +36,7 @@ from datetime import datetime, timezone
 from supabase import Client
 
 from companies_loader import companies_for
+from scrapers.filters import title_passes, location_passes
 
 log = logging.getLogger(__name__)
 
@@ -180,6 +181,10 @@ def scrape_company(company: dict, supabase: Client, dead_slugs: list[str]) -> in
             external_path = posting.get("externalPath", "")
             title         = (posting.get("title") or "").strip()
             if not external_path or not title:
+                continue
+            if not title_passes(title, company):
+                continue
+            if not location_passes(posting.get("locationsText") or "", company):
                 continue
 
             buffer.append({
