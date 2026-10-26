@@ -99,7 +99,7 @@ Respond with ONLY a JSON object (no markdown fences, no prose before or after) i
   "is_resume": true | false,
   "document_kind": "<what this document actually is, e.g. 'resume', 'invoice', 'essay', 'presentation', 'form'>",
   "education_level": "hs" | "2yr" | "4yr" | "graduate",
-  "years_experience": <number, total relevant working years, 0 if student/new grad>,
+  "years_experience": <number, total working years rounded UP (e.g. 10 months = 1). Use 0 ONLY for someone with no work history at all; anyone with at least one job on the resume has at least 1>,
   "current_title": "<their most recent job title, or 'Student' or 'Career changer'>",
   "summary": "<2 sentences describing their background and strengths. Do NOT include their name or any contact details.>",
   "best_industry": "additive-manufacturing" | "semiconductors" | "space",
