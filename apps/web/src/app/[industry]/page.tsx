@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import IndustryPageClient from '@/components/IndustryPageClient';
 import IndustryTabs from '@/components/IndustryTabs';
+import Logo from '@/components/Logo';
 import type { IndustryData } from '@/lib/types';
 
 import amData    from '@/data/additive-manufacturing.json';
@@ -67,16 +68,19 @@ export default async function IndustryMapPage({ params }: Props) {
         <div className="max-w-[1508px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <Link
             href="/"
-            className="group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F] rounded"
+            className="group flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F] rounded"
           >
-            <span
-              className="block text-lg font-bold text-white leading-tight group-hover:text-[#f0dfc0] transition-colors"
-              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-            >
-              Career Lattice
-            </span>
-            <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#d9b26a]">
-              Texas A&M Engineering | Workforce Development
+            <Logo size={30} />
+            <span>
+              <span
+                className="block text-lg font-bold text-white leading-tight group-hover:text-[#f0dfc0] transition-colors"
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              >
+                Career Lattice
+              </span>
+              <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#d9b26a]">
+                Texas A&M Engineering | Workforce Development
+              </span>
             </span>
           </Link>
           <nav aria-label="Switch industry" className="flex items-center gap-1.5">
