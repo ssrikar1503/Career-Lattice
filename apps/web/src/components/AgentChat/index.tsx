@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import type { IndustryData } from '@/lib/types';
-import DolphIQIcon, { DolphIQWordmark } from '../DolphIQIcon';
+import { DolphIQWordmark } from '../DolphIQIcon';
+import RevAvatar from '../RevAvatar';
 import { getResumeProfile } from '@/lib/resume-profile';
 
 interface Message {
@@ -312,7 +313,7 @@ export default function AgentChat({ data }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         ) : (
-          <DolphIQIcon className="w-8 h-8" />
+          <RevAvatar slug={data.industry.slug} className="w-8 h-8" />
         )}
         <span className="text-base" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
           Ask <DolphIQWordmark />
@@ -339,7 +340,7 @@ export default function AgentChat({ data }: Props) {
                        bg-[#500000] border-b-2 border-[#B7791F]"
           >
             <div className="flex items-start gap-3 min-w-0">
-              <DolphIQIcon chip className="w-10 h-10 mt-0.5 flex-shrink-0" />
+              <RevAvatar slug={data.industry.slug} className="w-10 h-10 mt-0.5 ring-2 ring-[#B7791F]" />
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-base font-bold text-white">
@@ -373,7 +374,7 @@ export default function AgentChat({ data }: Props) {
             {/* Welcome message - Rev introduces itself */}
             {messages.length === 0 && (
               <div className="text-center py-4">
-                <DolphIQIcon className="w-16 h-16 mx-auto mb-2 text-[#500000]" />
+                <RevAvatar slug={data.industry.slug} className="w-16 h-16 mx-auto mb-2 ring-2 ring-[#e2e2e2]" />
                 <p className="text-sm font-semibold text-gray-800">
                   Howdy! I&apos;m <DolphIQWordmark className="text-[#500000]" />
                 </p>
