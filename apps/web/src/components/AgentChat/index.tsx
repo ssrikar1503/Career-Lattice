@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import type { IndustryData } from '@/lib/types';
 import { DolphIQWordmark } from '../DolphIQIcon';
-import RevAvatar from '../RevAvatar';
+import RevAvatar, { revTheme } from '../RevAvatar';
 import { getResumeProfile } from '@/lib/resume-profile';
 
 interface Message {
@@ -105,6 +105,7 @@ function parsePathLine(
 }
 
 export default function AgentChat({ data }: Props) {
+  const theme    = revTheme(data.industry.slug);
   const router   = useRouter();
   const pathname = usePathname();
   const [open,       setOpen]       = useState(false);
@@ -303,10 +304,11 @@ export default function AgentChat({ data }: Props) {
         aria-label={open ? 'Close Rev' : 'Open Rev - your career guide'}
         aria-expanded={open}
         className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 pl-2.5 pr-4 py-2
-                   rounded-full bg-white text-[#500000] font-semibold text-sm shadow-xl
-                   border-2 border-[#500000]
+                   rounded-full bg-white font-semibold text-sm shadow-xl
+                   border-2
                    hover:scale-105 active:scale-95 transition-transform duration-150
                    focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7791F]"
+        style={{ borderColor: theme.mid, color: theme.deep }}
       >
         {open ? (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -336,11 +338,14 @@ export default function AgentChat({ data }: Props) {
         >
           {/* Header - Rev identity + tagline + industry */}
           <div
-            className="flex items-start justify-between px-4 py-3 flex-shrink-0 gap-3
-                       bg-[#500000] border-b-2 border-[#B7791F]"
+            className="flex items-start justify-between px-4 py-3 flex-shrink-0 gap-3 border-b-2"
+            style={{
+              background: `linear-gradient(135deg, ${theme.deep}, ${theme.mid})`,
+              borderBottomColor: theme.accent,
+            }}
           >
             <div className="flex items-start gap-3 min-w-0">
-              <RevAvatar slug={data.industry.slug} className="w-10 h-10 mt-0.5 ring-2 ring-[#B7791F]" />
+              <RevAvatar slug={data.industry.slug} className="w-11 h-11 mt-0.5" />
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-base font-bold text-white">
@@ -348,7 +353,7 @@ export default function AgentChat({ data }: Props) {
                   </span>
                   <span className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" aria-hidden="true" />
                 </div>
-                <p className="text-[11px] text-[#e3cf9f] leading-tight mt-0.5">
+                <p className="text-[11px] text-white/85 leading-tight mt-0.5">
                   Your Aggie career guide
                 </p>
                 <p className="text-[10px] text-white/60 leading-tight mt-0.5">
@@ -374,9 +379,9 @@ export default function AgentChat({ data }: Props) {
             {/* Welcome message - Rev introduces itself */}
             {messages.length === 0 && (
               <div className="text-center py-4">
-                <RevAvatar slug={data.industry.slug} className="w-16 h-16 mx-auto mb-2 ring-2 ring-[#e2e2e2]" />
+                <RevAvatar slug={data.industry.slug} className="w-20 h-20 mx-auto mb-2" />
                 <p className="text-sm font-semibold text-gray-800">
-                  Howdy! I&apos;m <DolphIQWordmark className="text-[#500000]" />
+                  Howdy! I&apos;m <span style={{ color: theme.deep }}><DolphIQWordmark /></span>
                 </p>
                 <p className="text-xs text-gray-500 mt-1.5 max-w-[260px] mx-auto leading-relaxed">
                   Ask me anything about {data.industry.name} careers - I know every role, salary, and pathway on this map.
@@ -416,7 +421,7 @@ export default function AgentChat({ data }: Props) {
                       ? 'bg-red-50 text-red-700 border border-red-200 rounded-bl-sm'
                       : 'bg-[#f5f5f5] text-gray-800 rounded-bl-sm',
                   ].join(' ')}
-                  style={msg.role === 'user' ? { backgroundColor: data.industry.color } : {}}
+                  style={msg.role === 'user' ? { backgroundColor: theme.mid } : {}}
                 >
                   {msg.role === 'assistant' && !msg.error ? (
                     <>
@@ -443,7 +448,7 @@ export default function AgentChat({ data }: Props) {
                                        rounded-xl px-3 py-2 text-xs font-semibold text-white
                                        hover:opacity-90 active:scale-[0.98] transition
                                        focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                            style={{ backgroundColor: data.industry.color }}
+                            style={{ backgroundColor: theme.mid }}
                           >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -494,9 +499,11 @@ export default function AgentChat({ data }: Props) {
               disabled={streaming}
               className="flex-1 resize-none bg-[#FFFFFF] border border-[#d9d9d9] rounded-xl
                          px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400
-                         focus:outline-none focus:border-[#500000]
+                         focus:outline-none
                          disabled:opacity-50 max-h-32 overflow-y-auto"
-              style={{ lineHeight: '1.4' }}
+              style={{ lineHeight: '1.4', outlineColor: theme.mid }}
+              onFocus={e => (e.currentTarget.style.borderColor = theme.mid)}
+              onBlur={e => (e.currentTarget.style.borderColor = '')}
               aria-label="Message to AI advisor"
             />
             <button
@@ -505,7 +512,7 @@ export default function AgentChat({ data }: Props) {
               className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center
                          text-white transition-opacity disabled:opacity-40
                          focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-              style={{ backgroundColor: data.industry.color }}
+              style={{ backgroundColor: theme.mid }}
               aria-label="Send message"
             >
               {streaming ? (
