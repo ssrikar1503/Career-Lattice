@@ -422,6 +422,21 @@
       "slug": "ursamajor",
       "ats": "greenhouse",
       "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "cerebras",
+      "ats": "ashby",
+      "industry": "semiconductors"
+    },
+    {
+      "slug": "etched",
+      "ats": "ashby",
+      "industry": "semiconductors"
+    },
+    {
+      "slug": "turion-space",
+      "ats": "ashby",
+      "industry": "space"
     }
   ]
 }
