@@ -639,7 +639,7 @@ export default function CareerMap({ data }: Props) {
 
         {/* Learning paths anchor - Phase J4 will populate; placeholder for "See related learning paths below" link */}
         <div id="learning-paths" className="mt-12 pt-8 border-t border-gray-100">
-          <p className="text-xs text-gray-400 italic">
+          <p className="text-xs text-gray-600 italic">
             Related learning paths will be added in a future update.
           </p>
         </div>
