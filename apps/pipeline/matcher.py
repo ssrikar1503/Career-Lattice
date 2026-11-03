@@ -19,10 +19,39 @@ import re
 import time
 import os
 import logging
+import httpx
 from anthropic import Anthropic, RateLimitError as AnthropicRateLimit
 from supabase import Client
 
 import provider_state
+
+# Transient network errors to a remote host (Supabase here) that should be
+# retried rather than crash a long run. A single dropped HTTP/2 connection
+# (httpx.RemoteProtocolError: Server disconnected) used to kill the whole
+# matcher mid-batch after ~70 minutes of work.
+_TRANSIENT_DB_ERRORS = (
+    httpx.RemoteProtocolError, httpx.ConnectError, httpx.ReadError,
+    httpx.WriteError, httpx.ConnectTimeout, httpx.ReadTimeout, httpx.PoolTimeout,
+)
+
+
+def _db_execute(build, *, what: str, retries: int = 5):
+    """Run a Supabase request builder's .execute() with exponential backoff on
+    transient disconnects. `build` is a zero-arg callable that returns a FRESH
+    request builder each attempt (a consumed builder may not be re-executable).
+    Re-raises if every attempt fails."""
+    for attempt in range(retries):
+        try:
+            return build().execute()
+        except _TRANSIENT_DB_ERRORS as e:
+            if attempt == retries - 1:
+                raise
+            wait = min(2 ** attempt, 15)
+            log.warning(
+                f"Supabase transient error on {what} "
+                f"(attempt {attempt + 1}/{retries}): {e}; retrying in {wait}s"
+            )
+            time.sleep(wait)
 
 log = logging.getLogger(__name__)
 
@@ -400,12 +429,16 @@ def run_matcher(
             # Almost no signal at all — reject pre-AI without spending API calls.
             # Threshold lowered from 0.10 to 0.05 so more borderline candidates
             # get a real AI judgment instead of being thrown away.
-            supabase.table("role_matches").insert({
-                "extracted_job_id":  job["id"],
-                "canonical_role_id": top3[0]["role"]["id"] if top3 else canonical_roles[0]["id"],
-                "confidence":        0.0,
-                "status":            "rejected",
-            }).execute()
+            try:
+                _db_execute(lambda: supabase.table("role_matches").insert({
+                    "extracted_job_id":  job["id"],
+                    "canonical_role_id": top3[0]["role"]["id"] if top3 else canonical_roles[0]["id"],
+                    "confidence":        0.0,
+                    "status":            "rejected",
+                }), what="role_matches insert (pre-AI reject)")
+            except Exception as e:
+                log.warning(f"  skipping job {job['id']} — reject insert failed after retries: {e}")
+                continue
             stats["rejected"] += 1
             continue
 
@@ -425,19 +458,27 @@ def run_matcher(
         status = route_confidence(confidence)
         stats[status if status == "rejected" else ("matched" if status == "approved" else "pending")] += 1
 
-        supabase.table("role_matches").insert({
-            "extracted_job_id":  job["id"],
-            "canonical_role_id": best["id"],
-            "confidence":        round(confidence, 2),
-            "status":            status,
-        }).execute()
+        try:
+            _db_execute(lambda: supabase.table("role_matches").insert({
+                "extracted_job_id":  job["id"],
+                "canonical_role_id": best["id"],
+                "confidence":        round(confidence, 2),
+                "status":            status,
+            }), what="role_matches insert")
+        except Exception as e:
+            log.warning(f"  skipping job {job['id']} — role_matches insert failed after retries: {e}")
+            continue
 
         # Auto-approved: update job count + hiring company on the canonical role.
         # Phase 3 — canonical_roles.open_jobs_count and hiring_companies are
         # the cached US-only view used by the default UI. Worldwide counts are
         # computed live from role_matches at API time.
         if status == "approved" and (job.get("country") or "").upper() == "US":
-            supabase.rpc("increment_job_count", {"role_id": best["id"]}).execute()
+            try:
+                _db_execute(lambda: supabase.rpc("increment_job_count", {"role_id": best["id"]}),
+                            what="increment_job_count")
+            except Exception as e:
+                log.warning(f"  increment_job_count failed (non-fatal): {e}")
             # Phase 2.3 — doc Step 5 requires "company list" on each canonical role
             company = ((job.get("raw_jobs") or {}).get("company") or "").strip()
             if company:
