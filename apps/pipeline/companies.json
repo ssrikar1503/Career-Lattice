@@ -3,7 +3,7 @@
   "_schema": {
     "slug": "company identifier \u2014 for Greenhouse/Lever this is the URL slug; for Workday it's used as a label",
     "ats": "one of: greenhouse | lever | workday",
-    "industry": "one of: additive-manufacturing | semiconductors | space",
+    "industry": "one of: additive-manufacturing | semiconductors | space | nuclear",
     "tenant": "(workday only) subdomain, e.g. 'intel' in intel.wd1.myworkdayjobs.com",
     "wd": "(workday only) datacenter number, e.g. 1 or 5 from .wd1. or .wd5.",
     "site": "(workday only) site path, e.g. 'External' or 'NVIDIAExternalCareerSite'",
@@ -437,6 +437,217 @@
       "slug": "turion-space",
       "ats": "ashby",
       "industry": "space"
+    },
+    {
+      "slug": "terrapowerllc",
+      "ats": "greenhouse",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "kairospower",
+      "ats": "greenhouse",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "oklo",
+      "ats": "greenhouse",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "valaratomics",
+      "ats": "greenhouse",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "pacificfusion",
+      "ats": "greenhouse",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "marvelfusion",
+      "ats": "greenhouse",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "thenuclearcompany",
+      "ats": "greenhouse",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "deepfissioninc",
+      "ats": "greenhouse",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "generalmatter",
+      "ats": "greenhouse",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "hexium",
+      "ats": "greenhouse",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "jensenhughes",
+      "ats": "greenhouse",
+      "industry": "nuclear",
+      "title_keywords": [
+        "nuclear",
+        "reactor",
+        "radiation",
+        "safety"
+      ]
+    },
+    {
+      "slug": "xcimer",
+      "ats": "lever",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "transmutex",
+      "ats": "lever",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "last-energy",
+      "ats": "lever",
+      "industry": "nuclear"
+    },
+    {
+      "slug": "lightmatter",
+      "ats": "greenhouse",
+      "industry": "semiconductors"
+    },
+    {
+      "slug": "furiosaai",
+      "ats": "greenhouse",
+      "industry": "semiconductors"
+    },
+    {
+      "slug": "indiesemiconductor",
+      "ats": "greenhouse",
+      "industry": "semiconductors"
+    },
+    {
+      "slug": "psiquantum",
+      "ats": "greenhouse",
+      "industry": "semiconductors"
+    },
+    {
+      "slug": "lemurianlabs",
+      "ats": "greenhouse",
+      "industry": "semiconductors"
+    },
+    {
+      "slug": "ionq",
+      "ats": "greenhouse",
+      "industry": "semiconductors"
+    },
+    {
+      "slug": "eliyan",
+      "ats": "lever",
+      "industry": "semiconductors"
+    },
+    {
+      "slug": "rigetti",
+      "ats": "lever",
+      "industry": "semiconductors"
+    },
+    {
+      "slug": "iqm",
+      "ats": "lever",
+      "industry": "semiconductors"
+    },
+    {
+      "slug": "atomcomputing",
+      "ats": "lever",
+      "industry": "semiconductors"
+    },
+    {
+      "slug": "albedo",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "apex",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "spire",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "inversionspace",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "scoutspace",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "portalspacesystems",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "privateer",
+      "ats": "greenhouse",
+      "industry": "space"
+    },
+    {
+      "slug": "loftorbital",
+      "ats": "lever",
+      "industry": "space"
+    },
+    {
+      "slug": "epsilon3",
+      "ats": "lever",
+      "industry": "space"
+    },
+    {
+      "slug": "paperlessparts",
+      "ats": "greenhouse",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "aon3d",
+      "ats": "greenhouse",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "pathrobotics",
+      "ats": "greenhouse",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "tulip",
+      "ats": "greenhouse",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "formic",
+      "ats": "greenhouse",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "augury",
+      "ats": "greenhouse",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "guidewheel",
+      "ats": "greenhouse",
+      "industry": "additive-manufacturing"
+    },
+    {
+      "slug": "brightmachines",
+      "ats": "lever",
+      "industry": "additive-manufacturing"
     }
   ]
 }

@@ -38,6 +38,14 @@ export const CLUSTER_COLORS: Record<string, {
   'Mission Operations & Ground Systems': { dot: 'bg-[#0284c7]', ring: 'ring-[#0284c7]', light: '#0284c7', band: '#0284c7', tint: '#0284c714' },
   'Launch & Test Operations':            { dot: 'bg-[#ea580c]', ring: 'ring-[#ea580c]', light: '#ea580c', band: '#ea580c', tint: '#ea580c14' },
   'Business, Policy & Supply Chain':     { dot: 'bg-[#dc2626]', ring: 'ring-[#dc2626]', light: '#dc2626', band: '#dc2626', tint: '#dc262614' },
+
+  // ── Nuclear Energy & Reactor Safety - radiation safety spectrum ─────────
+  // cyan (control) → green (radiation) → amber (regulation) → violet (analysis) → rose (emergency)
+  'Reactor Safety & Operations':              { dot: 'bg-[#0e7490]', ring: 'ring-[#0e7490]', light: '#0e7490', band: '#0e7490', tint: '#0e749014' },
+  'Radiation Protection & Health Physics':    { dot: 'bg-[#15803d]', ring: 'ring-[#15803d]', light: '#15803d', band: '#15803d', tint: '#15803d14' },
+  'Nuclear Regulatory, Licensing & Compliance': { dot: 'bg-[#b45309]', ring: 'ring-[#b45309]', light: '#b45309', band: '#b45309', tint: '#b4530914' },
+  'Safety Analysis & Risk (PRA)':             { dot: 'bg-[#6d28d9]', ring: 'ring-[#6d28d9]', light: '#6d28d9', band: '#6d28d9', tint: '#6d28d914' },
+  'Emergency Preparedness & Nuclear Security': { dot: 'bg-[#be123c]', ring: 'ring-[#be123c]', light: '#be123c', band: '#be123c', tint: '#be123c14' },
 };
 
 export const DEGREE_BADGES: Record<string, { label: string; className: string }> = {

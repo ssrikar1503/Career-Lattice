@@ -8,6 +8,11 @@ name: Seed taxonomy data
 
 on:
   workflow_dispatch:
+    inputs:
+      industries:
+        description: 'Industries to seed (space/comma separated slugs; blank = all)'
+        required: false
+        default: ''
 
 jobs:
   seed:
@@ -34,4 +39,5 @@ jobs:
         env:
           SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SEED_INDUSTRIES:           ${{ github.event.inputs.industries }}
         run: python seed_taxonomy.py

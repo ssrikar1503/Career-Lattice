@@ -5,14 +5,16 @@ import type { IndustryData } from '@/lib/types';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import OpeningsPageClient, { type OpeningJob } from './OpeningsPageClient';
 
-import amData    from '@/data/additive-manufacturing.json';
-import semiData  from '@/data/semiconductors.json';
-import spaceData from '@/data/space.json';
+import amData      from '@/data/additive-manufacturing.json';
+import semiData    from '@/data/semiconductors.json';
+import spaceData   from '@/data/space.json';
+import nuclearData from '@/data/nuclear.json';
 
 const INDUSTRY_MAP: Record<string, IndustryData> = {
-  'additive-manufacturing': amData    as IndustryData,
-  'semiconductors':         semiData  as IndustryData,
-  'space':                  spaceData as IndustryData,
+  'additive-manufacturing': amData      as IndustryData,
+  'semiconductors':         semiData    as IndustryData,
+  'space':                  spaceData   as IndustryData,
+  'nuclear':                nuclearData as IndustryData,
 };
 
 interface Props {

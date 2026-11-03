@@ -49,7 +49,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 log = logging.getLogger("pipeline")
 
-INDUSTRIES = ["additive-manufacturing", "semiconductors", "space"]
+INDUSTRIES = ["additive-manufacturing", "semiconductors", "space", "nuclear"]
 
 
 def get_clients() -> tuple[Client, Optional[Anthropic]]:

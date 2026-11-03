@@ -84,7 +84,7 @@ interface ResumeAnalysis {
 }
 
 function buildAnalysisPrompt(): string {
-  return `You are the resume analysis engine for Career Lattice, a Texas A&M Engineering Workforce Development career mapping platform covering three industries: Additive Manufacturing, Semiconductors, and the Space Industry.
+  return `You are the resume analysis engine for Career Lattice, a Texas A&M Engineering Workforce Development career mapping platform covering four industries: Additive Manufacturing, Semiconductors, the Space Industry, and Nuclear Energy & Reactor Safety.
 
 FULL ROLE TAXONOMY (the only roles that exist - every role_id you output MUST come from here):
 
@@ -102,7 +102,7 @@ Respond with ONLY a JSON object (no markdown fences, no prose before or after) i
   "years_experience": <number. Compute from the employment dates on the resume: sum the spans of all jobs (today is ${new Date().toISOString().slice(0, 7)}; "2024 - present" counts as 2 years). Round partial years UP. Use 0 ONLY for someone with no work history at all>,
   "current_title": "<their most recent job title, or 'Student' or 'Career changer'>",
   "summary": "<2 sentences describing their background and strengths. Do NOT include their name or any contact details.>",
-  "best_industry": "additive-manufacturing" | "semiconductors" | "space",
+  "best_industry": "additive-manufacturing" | "semiconductors" | "space" | "nuclear",
   "matches": [
     {
       "role_id": "<id from taxonomy, in best_industry>",
@@ -120,7 +120,7 @@ RULES:
 2. "confidence" must be calibrated: 0.85+ only for near-perfect skill and seniority alignment; 0.5-0.7 for plausible fits with gaps; never give three 0.9s.
 3. "matched_skills" and "gap_skills" must come from that role's skill list in the taxonomy (2-4 each). Do not invent skills.
 4. "recommended_path": 3 to 6 role_ids from best_industry. It MUST include your top match's role_id, normally as the FIRST entry, then progress toward more senior roles. Never step backwards in seniority (a senior-level person's path must not pass through a more junior role than their top match). Prefer sequences from the Career Pathways lists. This is a growth path, not a list of alternatives.
-5. Choose best_industry by evidence in the resume, not by which map is most popular. Software/electronics evidence often fits semiconductors; machining/welding/QA often fits additive manufacturing; systems/aerospace/mission work often fits space.
+5. Choose best_industry by evidence in the resume, not by which map is most popular. Software/electronics evidence often fits semiconductors; machining/welding/QA often fits additive manufacturing; systems/aerospace/mission work often fits space; reactor operations, radiation protection, health physics, and nuclear licensing or safety analysis fit nuclear.
 6. "is_resume" is about DOCUMENT TYPE ONLY, not field relevance: it is false ONLY when the document is not a person's work history / CV at all - e.g. an invoice, quotation, report, essay, slide deck, article, form, or random text. In that case set "document_kind" honestly, set matches to [] and recommended_path to [], and leave the other fields as empty strings or 0. A thin resume (a student with one job) IS a resume. A resume from a completely different field (a chef, a teacher, a cashier) IS a resume.
 7. For a genuine resume from an unrelated field, DO return 3 matches: pick the entry-level roles where their transferable skills (quality focus, equipment handling, team leadership, documentation, safety) count for the most, with honest LOW confidence (0.25-0.50), gap_skills showing what they would need to learn, and a "why" that frames it as a career-change starting point. recommended_path then starts from that entry role. Never return empty matches for a real resume.`;
 }

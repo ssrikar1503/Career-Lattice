@@ -78,6 +78,7 @@ const INDUSTRY_NAMES: Record<string, string> = {
   'additive-manufacturing': 'Additive Manufacturing',
   'semiconductors': 'Semiconductors',
   'space': 'Space Industry',
+  'nuclear': 'Nuclear Energy & Reactor Safety',
 };
 
 /** Extract the recommended path from a completed message's PATH: line.

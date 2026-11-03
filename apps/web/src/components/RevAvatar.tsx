@@ -10,6 +10,7 @@ const ART: Record<string, string> = {
   semiconductors: '/rev/rev-semiconductors.png',
   space: '/rev/rev-space.png',
   'additive-manufacturing': '/rev/rev-additive-manufacturing.png',
+  nuclear: '/rev/rev-nuclear.png',
 };
 
 /**
@@ -21,6 +22,7 @@ export const REV_THEME: Record<string, { deep: string; mid: string; accent: stri
   semiconductors: { deep: '#1e1b4b', mid: '#7c3aed', accent: '#06b6d4' },
   space: { deep: '#241a52', mid: '#c026d3', accent: '#ea580c' },
   'additive-manufacturing': { deep: '#172554', mid: '#0891b2', accent: '#65a30d' },
+  nuclear: { deep: '#0f3d2e', mid: '#15803d', accent: '#0e7490' },
 };
 
 export function revTheme(slug: string) {

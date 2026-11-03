@@ -161,7 +161,7 @@ export default function ResumeAnalyzer({ industrySlug }: { industrySlug: string 
               <path d="M17 8l-5-5-5 5" /><path d="M12 3v12" />
             </svg>
             <span className="text-sm font-medium text-gray-700">Drop your resume here or click to browse</span>
-            <span className="text-[11px] text-gray-400">PDF or DOCX, up to 4 MB</span>
+            <span className="text-[11px] text-gray-600">PDF or DOCX, up to 4 MB</span>
           </div>
           <input
             ref={inputRef}
@@ -173,7 +173,7 @@ export default function ResumeAnalyzer({ industrySlug }: { industrySlug: string 
           {phase === 'error' && (
             <p role="alert" className="mt-2 text-xs text-red-700">{error}</p>
           )}
-          <p className="mt-2 text-[10px] text-gray-400">
+          <p className="mt-2 text-[10px] text-gray-600">
             Your resume is analyzed in memory and never stored.
           </p>
         </>

@@ -1,5 +1,5 @@
 {
-  "_comment": "Texas education programs shown in the role detail modal, keyed by industry slug then degree_required tier. All URLs verified Aug 2026.",
+  "_comment": "Texas education programs shown in the role detail modal, keyed by industry slug then degree_required tier. Community and technical college URLs verified Aug 2026; university (4yr and graduate) programs expanded and verified Nov 2026; nuclear energy and reactor safety programs added and verified Nov 2026.",
   "semiconductors": {
     "hs": [
       {
@@ -55,6 +55,31 @@
         "institution": "Texas A&M Engineering Academies",
         "program": "Co-enrollment pathway into A&M Engineering",
         "url": "https://engineering.tamu.edu/academies"
+      },
+      {
+        "institution": "University of Houston",
+        "program": "Electrical & Computer Engineering (BS)",
+        "url": "https://www.ece.uh.edu"
+      },
+      {
+        "institution": "Rice University",
+        "program": "Electrical & Computer Engineering (BS)",
+        "url": "https://eceweb.rice.edu"
+      },
+      {
+        "institution": "Rice University",
+        "program": "Materials Science & NanoEngineering (BS)",
+        "url": "https://msne.rice.edu"
+      },
+      {
+        "institution": "The University of Texas at Austin",
+        "program": "Electrical & Computer Engineering (BS)",
+        "url": "https://www.ece.utexas.edu"
+      },
+      {
+        "institution": "The University of Texas at Dallas",
+        "program": "Electrical Engineering (BS)",
+        "url": "https://ece.utdallas.edu"
       }
     ],
     "graduate": [
@@ -67,6 +92,26 @@
         "institution": "Texas A&M University",
         "program": "Graduate programs, Materials Science & Engineering",
         "url": "https://engineering.tamu.edu/materials"
+      },
+      {
+        "institution": "University of Houston",
+        "program": "Graduate programs, Electrical & Computer Engineering",
+        "url": "https://www.ece.uh.edu"
+      },
+      {
+        "institution": "Rice University",
+        "program": "Graduate programs, Materials Science & NanoEngineering",
+        "url": "https://msne.rice.edu"
+      },
+      {
+        "institution": "The University of Texas at Austin",
+        "program": "Graduate programs, Electrical & Computer Engineering",
+        "url": "https://www.ece.utexas.edu"
+      },
+      {
+        "institution": "The University of Texas at Dallas",
+        "program": "Graduate programs, Electrical & Computer Engineering",
+        "url": "https://ece.utdallas.edu"
       }
     ]
   },
@@ -115,6 +160,26 @@
         "institution": "Texas A&M University",
         "program": "Materials Science & Engineering (BS)",
         "url": "https://engineering.tamu.edu/materials"
+      },
+      {
+        "institution": "The University of Texas at El Paso",
+        "program": "Aerospace & Mechanical Engineering, additive manufacturing (W.M. Keck Center for 3D Innovation)",
+        "url": "https://www.utep.edu/keck"
+      },
+      {
+        "institution": "University of Houston",
+        "program": "Mechanical Engineering (BS)",
+        "url": "https://www.me.uh.edu"
+      },
+      {
+        "institution": "Rice University",
+        "program": "Materials Science & NanoEngineering (BS)",
+        "url": "https://msne.rice.edu"
+      },
+      {
+        "institution": "The University of Texas at Austin",
+        "program": "Mechanical Engineering (BS)",
+        "url": "https://www.me.utexas.edu"
       }
     ],
     "graduate": [
@@ -127,6 +192,16 @@
         "institution": "Texas A&M University",
         "program": "Graduate programs, Materials Science & Engineering",
         "url": "https://engineering.tamu.edu/materials"
+      },
+      {
+        "institution": "The University of Texas at El Paso",
+        "program": "Graduate research, additive manufacturing (W.M. Keck Center for 3D Innovation)",
+        "url": "https://www.utep.edu/keck"
+      },
+      {
+        "institution": "The University of Texas at Austin",
+        "program": "Graduate programs, Materials Science & Engineering (Texas Materials Institute)",
+        "url": "https://tmi.utexas.edu"
       }
     ]
   },
@@ -175,6 +250,31 @@
         "institution": "Texas A&M University",
         "program": "Mechanical Engineering (BS)",
         "url": "https://engineering.tamu.edu/mechanical"
+      },
+      {
+        "institution": "The University of Texas at Austin",
+        "program": "Aerospace Engineering (BS)",
+        "url": "https://www.ae.utexas.edu"
+      },
+      {
+        "institution": "The University of Texas at Arlington",
+        "program": "Aerospace Engineering (BS)",
+        "url": "https://www.uta.edu/engineering/mechanical-aerospace"
+      },
+      {
+        "institution": "The University of Texas at El Paso",
+        "program": "Aerospace & Mechanical Engineering (BS)",
+        "url": "https://www.utep.edu/engineering/mechanical"
+      },
+      {
+        "institution": "University of Houston",
+        "program": "Mechanical Engineering (BS)",
+        "url": "https://www.me.uh.edu"
+      },
+      {
+        "institution": "Rice University",
+        "program": "Mechanical Engineering (BS)",
+        "url": "https://mech.rice.edu"
       }
     ],
     "graduate": [
@@ -182,6 +282,16 @@
         "institution": "Texas A&M University",
         "program": "Graduate programs, Aerospace Engineering",
         "url": "https://engineering.tamu.edu/aerospace"
+      },
+      {
+        "institution": "The University of Texas at Austin",
+        "program": "Graduate programs, Aerospace Engineering",
+        "url": "https://www.ae.utexas.edu"
+      },
+      {
+        "institution": "The University of Texas at Arlington",
+        "program": "Graduate programs, Aerospace Engineering",
+        "url": "https://www.uta.edu/engineering/mechanical-aerospace"
       },
       {
         "institution": "Texas A&M University",
@@ -192,6 +302,66 @@
         "institution": "Texas A&M University",
         "program": "Graduate programs, Electrical & Computer Engineering",
         "url": "https://engineering.tamu.edu/electrical"
+      }
+    ]
+  },
+  "nuclear": {
+    "hs": [
+      {
+        "institution": "Wharton County Junior College",
+        "program": "Nuclear Power Technology (start toward the AAS)",
+        "url": "https://wcjc.edu/programs/areas-of-interest/construction-manufacturing-and-repair-services/nuclear-technology-program.aspx"
+      },
+      {
+        "institution": "Houston Community College",
+        "program": "Process Technology (entry certificate)",
+        "url": "https://www.hccs.edu/programs/areas-of-study/science-technology-engineering--math/process-technology/"
+      }
+    ],
+    "2yr": [
+      {
+        "institution": "Wharton County Junior College",
+        "program": "Nuclear Power Technology (AAS), near the South Texas Project plant",
+        "url": "https://wcjc.edu/programs/areas-of-interest/construction-manufacturing-and-repair-services/nuclear-technology-program.aspx"
+      },
+      {
+        "institution": "Houston Community College",
+        "program": "Process Technology (AAS)",
+        "url": "https://www.hccs.edu/programs/areas-of-study/science-technology-engineering--math/process-technology/"
+      },
+      {
+        "institution": "Texas A&M Engineering Academies",
+        "program": "Start at a partner college, finish an engineering degree at A&M",
+        "url": "https://engineering.tamu.edu/academies"
+      }
+    ],
+    "4yr": [
+      {
+        "institution": "Texas A&M University",
+        "program": "Nuclear Engineering (BS)",
+        "url": "https://engineering.tamu.edu/nuclear/academics/degrees/undergraduate/index.html"
+      },
+      {
+        "institution": "Texas A&M University",
+        "program": "Radiological Health Engineering (BS)",
+        "url": "https://engineering.tamu.edu/nuclear/academics/index.html"
+      },
+      {
+        "institution": "The University of Texas at Austin",
+        "program": "Nuclear and Radiation Engineering",
+        "url": "https://www.nuclear.engr.utexas.edu/"
+      }
+    ],
+    "graduate": [
+      {
+        "institution": "Texas A&M University",
+        "program": "Graduate programs, Nuclear Engineering and Health Physics",
+        "url": "https://engineering.tamu.edu/nuclear/academics/degrees/graduate/index.html"
+      },
+      {
+        "institution": "The University of Texas at Austin",
+        "program": "Graduate programs, Nuclear and Radiation Engineering",
+        "url": "https://me.utexas.edu/academics/graduate-program/areas-of-study/nuclear-and-radiation-engineering"
       }
     ]
   }
