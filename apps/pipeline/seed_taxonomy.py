@@ -261,8 +261,20 @@ def main() -> int:
     if not verify_schema(supabase):
         return 1
 
+    # Optional scope: SEED_INDUSTRIES="nuclear" (space/comma separated slugs)
+    # seeds only those industries, leaving every other industry's rows and
+    # job counts untouched. Blank = seed all (the original behaviour).
+    only = os.environ.get("SEED_INDUSTRIES", "").replace(",", " ").split()
+    files = JSON_FILES
+    if only:
+        files = [f for f in JSON_FILES if f[:-5] in only]
+        if not files:
+            log.error(f"SEED_INDUSTRIES={only} matched none of {JSON_FILES}")
+            return 1
+        log.info(f"SEED_INDUSTRIES set -> seeding only: {files}")
+
     total_roles = 0
-    for filename in JSON_FILES:
+    for filename in files:
         path = JSON_DIR / filename
         if not path.exists():
             log.error(f"File not found: {path}")
@@ -276,7 +288,7 @@ def main() -> int:
         log.info("")
 
     log.info("=" * 50)
-    log.info(f"Done. {total_roles} canonical roles seeded across {len(JSON_FILES)} industries.")
+    log.info(f"Done. {total_roles} canonical roles seeded across {len(files)} industries.")
     log.info("Next: trigger the 'Weekly ingestion pipeline' workflow in GitHub Actions.")
     return 0
 
