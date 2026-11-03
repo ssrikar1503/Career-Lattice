@@ -44,7 +44,7 @@ logging.basicConfig(
 log = logging.getLogger("seeder")
 
 JSON_DIR   = Path(__file__).parent.parent / "web" / "src" / "data"
-JSON_FILES = ["additive-manufacturing.json", "semiconductors.json", "space.json"]
+JSON_FILES = ["additive-manufacturing.json", "semiconductors.json", "space.json", "nuclear.json"]
 
 
 def verify_schema(supabase: Client) -> bool:

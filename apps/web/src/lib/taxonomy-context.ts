@@ -7,14 +7,16 @@
  */
 import type { IndustryData } from '@/lib/types';
 
-import amData    from '@/data/additive-manufacturing.json';
-import semiData  from '@/data/semiconductors.json';
-import spaceData from '@/data/space.json';
+import amData      from '@/data/additive-manufacturing.json';
+import semiData    from '@/data/semiconductors.json';
+import spaceData   from '@/data/space.json';
+import nuclearData from '@/data/nuclear.json';
 
 export const INDUSTRY_MAP: Record<string, IndustryData> = {
-  'additive-manufacturing': amData    as IndustryData,
-  'semiconductors':         semiData  as IndustryData,
-  'space':                  spaceData as IndustryData,
+  'additive-manufacturing': amData      as IndustryData,
+  'semiconductors':         semiData    as IndustryData,
+  'space':                  spaceData   as IndustryData,
+  'nuclear':                nuclearData as IndustryData,
 };
 
 export function buildContext(data: IndustryData): string {

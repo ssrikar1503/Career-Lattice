@@ -19,5 +19,12 @@
     "color": "#500000",
     "role_count": 90,
     "pathway_count": 0
+  },
+  "nuclear": {
+    "name": "Nuclear Energy & Reactor Safety",
+    "description": "Reactor safety and operations, radiation protection and health physics, regulatory licensing and compliance, safety analysis and risk (PRA), and emergency preparedness and security - the careers that keep nuclear energy safe. 80 roles across 5 clusters.",
+    "color": "#500000",
+    "role_count": 80,
+    "pathway_count": 0
   }
 }

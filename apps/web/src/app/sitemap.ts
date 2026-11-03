@@ -1,15 +1,17 @@
 import type { MetadataRoute } from 'next';
 import type { IndustryData } from '@/lib/types';
-import amData    from '@/data/additive-manufacturing.json';
-import semiData  from '@/data/semiconductors.json';
-import spaceData from '@/data/space.json';
+import amData      from '@/data/additive-manufacturing.json';
+import semiData    from '@/data/semiconductors.json';
+import spaceData   from '@/data/space.json';
+import nuclearData from '@/data/nuclear.json';
 
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://career-lattice-beta.vercel.app').replace(/\/$/, '');
 
 const INDUSTRIES: Array<{ slug: string; data: IndustryData }> = [
-  { slug: 'additive-manufacturing', data: amData    as unknown as IndustryData },
-  { slug: 'semiconductors',         data: semiData  as unknown as IndustryData },
-  { slug: 'space',                  data: spaceData as unknown as IndustryData },
+  { slug: 'additive-manufacturing', data: amData      as unknown as IndustryData },
+  { slug: 'semiconductors',         data: semiData    as unknown as IndustryData },
+  { slug: 'space',                  data: spaceData   as unknown as IndustryData },
+  { slug: 'nuclear',                data: nuclearData as unknown as IndustryData },
 ];
 
 // NOTE: the bare role route /[industry]/role/[id] 404s on this site — only

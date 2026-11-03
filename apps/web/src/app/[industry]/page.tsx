@@ -6,20 +6,23 @@ import IndustryTabs from '@/components/IndustryTabs';
 import Logo from '@/components/Logo';
 import type { IndustryData } from '@/lib/types';
 
-import amData    from '@/data/additive-manufacturing.json';
-import semiData  from '@/data/semiconductors.json';
-import spaceData from '@/data/space.json';
+import amData      from '@/data/additive-manufacturing.json';
+import semiData    from '@/data/semiconductors.json';
+import spaceData   from '@/data/space.json';
+import nuclearData from '@/data/nuclear.json';
 
 const INDUSTRY_MAP: Record<string, IndustryData> = {
-  'additive-manufacturing': amData    as IndustryData,
-  'semiconductors':         semiData  as IndustryData,
-  'space':                  spaceData as IndustryData,
+  'additive-manufacturing': amData      as IndustryData,
+  'semiconductors':         semiData    as IndustryData,
+  'space':                  spaceData   as IndustryData,
+  'nuclear':                nuclearData as IndustryData,
 };
 
 const ALL_INDUSTRIES = [
   { slug: 'additive-manufacturing', name: 'Additive Manufacturing', short: 'AM' },
   { slug: 'semiconductors',         name: 'Semiconductors',         short: 'Semi' },
   { slug: 'space',                  name: 'Space Industry',         short: 'Space' },
+  { slug: 'nuclear',                name: 'Nuclear Energy & Reactor Safety', short: 'Nuclear' },
 ];
 
 interface Props {
