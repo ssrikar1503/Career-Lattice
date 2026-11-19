@@ -8,15 +8,19 @@ import type { NextConfig } from "next";
  * server-side, so connect-src 'self' already covers them; Supabase is
  * allowed for any future client-side reads.
  */
-// On non-production builds Vercel injects its Live feedback/comment toolbar
-// from vercel.live (+ pusher websockets); allow it there only, so Production
-// stays locked to self + Supabase.
-const isProd = process.env.VERCEL_ENV === "production";
+// Vercel PREVIEW builds inject a Live feedback/comment toolbar from
+// vercel.live (+ pusher websockets); allow it there ONLY. Production on
+// Vercel AND any non-Vercel host (e.g. GCP Cloud Run, where VERCEL_ENV is
+// unset) stay locked to self + Supabase. Keyed off an explicit preview
+// signal rather than "not production" so the CSP cannot silently loosen
+// on a platform that doesn't set VERCEL_ENV.
+const isVercelPreview =
+  !!process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production";
 
 const scriptSrc = ["'self'", "'unsafe-inline'", "'unsafe-eval'"];
 const connectSrc = ["'self'", "https://*.supabase.co"];
 const frameSrc = ["'self'"];
-if (!isProd) {
+if (isVercelPreview) {
   scriptSrc.push("https://vercel.live");
   connectSrc.push("https://vercel.live", "https://*.pusher.com", "wss://*.pusher.com");
   frameSrc.push("https://vercel.live");
@@ -45,6 +49,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Emit a self-contained server bundle (.next/standalone) so the Docker
+  // image can run `node server.js` without the full node_modules tree.
+  // Harmless on Vercel (ignored there); required for Cloud Run.
+  output: "standalone",
   poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

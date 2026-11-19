@@ -1,0 +1,13 @@
+# Keep the build context small and secrets out of the image.
+node_modules
+.next
+.git
+.vercel
+npm-debug.log*
+Dockerfile
+.dockerignore
+README.md
+# Never ship local secrets; Cloud Run injects env at runtime.
+.env
+.env.*
+!.env.example
