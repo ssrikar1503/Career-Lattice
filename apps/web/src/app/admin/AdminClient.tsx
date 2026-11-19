@@ -325,12 +325,10 @@ export default function AdminClient({ isAuthed: initAuthed }: { isAuthed: boolea
           <div className="mb-6 rounded-2xl border border-yellow-200 bg-yellow-50 p-6">
             <h2 className="text-sm font-bold text-yellow-800 mb-2">Database not connected</h2>
             <p className="text-sm text-yellow-700 leading-relaxed">
-              Supabase is not configured yet. After deploying, set these environment variables and re-run the pipeline:
+              The database is not configured yet. After deploying, set this environment variable and re-run the pipeline:
             </p>
             <ul className="mt-3 text-xs font-mono text-yellow-800 space-y-1">
-              <li>NEXT_PUBLIC_SUPABASE_URL</li>
-              <li>NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
-              <li>SUPABASE_SERVICE_ROLE_KEY</li>
+              <li>DATABASE_URL</li>
             </ul>
             <p className="text-sm text-yellow-700 mt-3">
               Once connected, the ingestion pipeline will populate this queue weekly via GitHub Actions.

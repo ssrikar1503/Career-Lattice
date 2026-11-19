@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { IndustryData } from '@/lib/types';
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { getPool, query } from '@/lib/db';
 import OpeningsPageClient, { type OpeningJob } from './OpeningsPageClient';
 
 import amData      from '@/data/additive-manufacturing.json';
@@ -40,88 +40,59 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  * degrades gracefully to "No openings".
  */
 async function fetchOpenings(industrySlug: string, roleTitle: string): Promise<OpeningJob[]> {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return [];
+  if (!getPool()) return [];
 
   try {
-    const { data: industry } = await supabase
-      .from('industries')
-      .select('id')
-      .eq('slug', industrySlug)
-      .single();
-    if (!industry?.id) return [];
+    // Resolve the canonical role by (industry slug, case-insensitive title).
+    const roleRows = await query<{ id: string }>(
+      `SELECT cr.id
+         FROM canonical_roles cr
+         JOIN industries i ON i.id = cr.industry_id
+        WHERE i.slug = $1 AND cr.title ILIKE $2
+        LIMIT 1`,
+      [industrySlug, roleTitle.trim()],
+    );
+    const roleId = roleRows[0]?.id;
+    if (!roleId) return [];
 
-    const { data: roleRow } = await supabase
-      .from('canonical_roles')
-      .select('id')
-      .eq('industry_id', industry.id)
-      .ilike('title', roleTitle.trim())
-      .maybeSingle();
-    if (!roleRow?.id) return [];
+    // Every approved match for this role, joined to its posting, newest first.
+    // Direct SQL has no 1000-row cap, so one query returns the full set.
+    const rows = await query<{
+      match_id:         string;
+      confidence:       string | number | null;
+      normalized_title: string | null;
+      country:          string | null;
+      location:         string | null;
+      company:          string | null;
+      url:              string | null;
+      raw_title:        string | null;
+      source:           string | null;
+      scraped_at:       Date | string | null;
+    }>(
+      `SELECT rm.id AS match_id, rm.confidence,
+              ej.normalized_title, ej.country, ej.location,
+              rj.company, rj.url, rj.raw_title, rj.source, rj.scraped_at
+         FROM role_matches rm
+         JOIN extracted_jobs ej ON ej.id = rm.extracted_job_id
+         JOIN raw_jobs       rj ON rj.id = ej.raw_job_id
+        WHERE rm.canonical_role_id = $1
+          AND rm.status = 'approved'
+          AND rj.url IS NOT NULL
+        ORDER BY rj.scraped_at DESC NULLS LAST`,
+      [roleId],
+    );
 
-    // Page through matches for this role - Supabase silently caps a single
-    // select at 1000 rows. Popular roles (NVIDIA semiconductor matches etc.)
-    // could plausibly exceed that as the matcher drains the backlog.
-    const PAGE = 1000;
-    type MatchRow = {
-      id: string;
-      confidence?: number;
-      extracted_jobs?: {
-        normalized_title?: string;
-        country?: string;
-        location?: string;
-        raw_jobs?: {
-          company?: string;
-          url?: string;
-          raw_title?: string;
-          source?: string;
-          scraped_at?: string;
-        } | null;
-      } | null;
-    };
-    const matches: MatchRow[] = [];
-    let offset = 0;
-    while (true) {
-      const { data: page } = await supabase
-        .from('role_matches')
-        .select(`
-          id,
-          confidence,
-          extracted_jobs(
-            normalized_title,
-            country,
-            location,
-            raw_jobs(company, url, raw_title, source, scraped_at)
-          )
-        `)
-        .eq('canonical_role_id', roleRow.id)
-        .eq('status', 'approved')
-        .range(offset, offset + PAGE - 1);
-      const rows = (page ?? []) as MatchRow[];
-      matches.push(...rows);
-      if (rows.length < PAGE) break;
-      offset += PAGE;
-    }
-
-    const flattened: OpeningJob[] = [];
-    for (const m of matches) {
-      const ej = m.extracted_jobs;
-      const rj = ej?.raw_jobs;
-      if (!ej || !rj || !rj.url) continue;
-      flattened.push({
-        matchId:    m.id,
-        title:      rj.raw_title || ej.normalized_title || 'Untitled role',
-        company:    rj.company || 'Unknown company',
-        location:   ej.location || '',
-        country:    (ej.country || 'XX').toUpperCase(),
-        url:        rj.url,
-        source:     rj.source || 'unknown',
-        scrapedAt:  rj.scraped_at || '',
-        confidence: typeof m.confidence === 'number' ? m.confidence : null,
-      });
-    }
-    flattened.sort((a, b) => (b.scrapedAt || '').localeCompare(a.scrapedAt || ''));
-    return flattened;
+    return rows.map(r => ({
+      matchId:    r.match_id,
+      title:      r.raw_title || r.normalized_title || 'Untitled role',
+      company:    r.company || 'Unknown company',
+      location:   r.location || '',
+      country:    (r.country || 'XX').toUpperCase(),
+      url:        r.url as string,
+      source:     r.source || 'unknown',
+      scrapedAt:  r.scraped_at ? new Date(r.scraped_at).toISOString() : '',
+      confidence: r.confidence != null ? Number(r.confidence) : null,
+    }));
   } catch {
     return [];
   }

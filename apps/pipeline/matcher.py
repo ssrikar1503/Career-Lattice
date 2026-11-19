@@ -19,36 +19,34 @@ import re
 import time
 import os
 import logging
-import httpx
+import psycopg
 from anthropic import Anthropic, RateLimitError as AnthropicRateLimit
-from supabase import Client
 
 import provider_state
 
-# Transient network errors to a remote host (Supabase here) that should be
-# retried rather than crash a long run. A single dropped HTTP/2 connection
-# (httpx.RemoteProtocolError: Server disconnected) used to kill the whole
-# matcher mid-batch after ~70 minutes of work.
-_TRANSIENT_DB_ERRORS = (
-    httpx.RemoteProtocolError, httpx.ConnectError, httpx.ReadError,
-    httpx.WriteError, httpx.ConnectTimeout, httpx.ReadTimeout, httpx.PoolTimeout,
-)
+# Transient connection errors to the Postgres host that should be retried
+# rather than crash a long run. A single dropped connection (psycopg
+# OperationalError: server closed the connection unexpectedly) used to kill the
+# whole matcher mid-batch after ~70 minutes of work. Each retry opens a fresh
+# connection (db.execute() connects per call), so a dropped socket recovers.
+_TRANSIENT_DB_ERRORS = (psycopg.OperationalError,)
 
 
 def _db_execute(build, *, what: str, retries: int = 5):
-    """Run a Supabase request builder's .execute() with exponential backoff on
-    transient disconnects. `build` is a zero-arg callable that returns a FRESH
-    request builder each attempt (a consumed builder may not be re-executable).
-    Re-raises if every attempt fails."""
+    """Run a DB write with exponential backoff on transient disconnects.
+    `build` is a zero-arg callable that performs the DB operation (e.g. a
+    db.execute(...) call) and returns its result; it is re-invoked fresh on
+    each attempt so a new connection is opened every retry. Re-raises if every
+    attempt fails."""
     for attempt in range(retries):
         try:
-            return build().execute()
+            return build()
         except _TRANSIENT_DB_ERRORS as e:
             if attempt == retries - 1:
                 raise
             wait = min(2 ** attempt, 15)
             log.warning(
-                f"Supabase transient error on {what} "
+                f"Postgres transient error on {what} "
                 f"(attempt {attempt + 1}/{retries}): {e}; retrying in {wait}s"
             )
             time.sleep(wait)
@@ -324,7 +322,7 @@ def route_confidence(confidence: float) -> str:
 
 
 def run_matcher(
-    supabase: Client,
+    db,
     anthropic: Anthropic | None,
     industry_slug: str,
     batch_size: int = 500,
@@ -332,76 +330,66 @@ def run_matcher(
     """Match unmatched extracted_jobs against canonical_roles for one industry."""
 
     # Load canonical roles for this industry
-    industry_result = (
-        supabase.table("industries")
-        .select("id")
-        .eq("slug", industry_slug)
-        .single()
-        .execute()
+    industry_row = db.fetchone(
+        "SELECT id FROM industries WHERE slug = %s",
+        (industry_slug,),
     )
-    if not industry_result.data:
+    if not industry_row:
         log.error(f"Industry {industry_slug!r} not found in DB — has the schema been seeded?")
         return {"matched": 0, "pending": 0, "rejected": 0}
 
-    industry_id = industry_result.data["id"]
+    industry_id = industry_row["id"]
 
-    roles_result = (
-        supabase.table("canonical_roles")
-        .select("id, title, cluster, seniority, skills")
-        .eq("industry_id", industry_id)
-        .execute()
+    canonical_roles = db.fetchall(
+        "SELECT id, title, cluster, seniority, skills FROM canonical_roles WHERE industry_id = %s",
+        (industry_id,),
     )
-    canonical_roles = roles_result.data or []
     if not canonical_roles:
         log.warning(f"No canonical roles found for {industry_slug!r}.")
         return {"matched": 0, "pending": 0, "rejected": 0}
-
-    # Page through role_matches.extracted_job_id — Supabase silently caps a
-    # single .limit() call at 1000 rows. Without pagination this set would
-    # cap out at 1000 and we'd start re-judging old matches once role_matches
-    # crosses that count.
-    PAGE = 1000
-    already_matched: set[str] = set()
-    offset = 0
-    while True:
-        result = (
-            supabase.table("role_matches")
-            .select("extracted_job_id")
-            .range(offset, offset + PAGE - 1)
-            .execute()
-        )
-        rows = result.data or []
-        for r in rows:
-            already_matched.add(r["extracted_job_id"])
-        if len(rows) < PAGE:
-            break
-        offset += PAGE
 
     # Phase 3.6 — filter extracted_jobs by industry. Without this filter the
     # matcher's per-industry loop ran into a "first-industry-wins" bug: AM
     # would consume every job in the queue (rejecting most as non-AM), leaving
     # Semi and Space matchers with zero jobs to judge.
-    # Pagination here works around the same 1000-row PostgREST cap that bit
-    # the extractor. Stops paginating once we have batch_size unmatched jobs.
-    all_extracted: list[dict] = []
-    offset = 0
-    while len(all_extracted) < batch_size:
-        result = (
-            supabase.table("extracted_jobs")
-            .select("id, normalized_title, seniority, location, country, industry, raw_jobs(company, raw_description)")
-            .eq("industry", industry_slug)
-            .range(offset, offset + PAGE - 1)
-            .execute()
-        )
-        rows = result.data or []
-        for r in rows:
-            if r["id"] not in already_matched:
-                all_extracted.append(r)
-                if len(all_extracted) >= batch_size:
-                    break
-        if len(rows) < PAGE:
-            break
-        offset += PAGE
+    #
+    # Select this industry's extracted_jobs that do NOT yet have a role_match
+    # (NOT EXISTS anti-join), capped at batch_size — that cap bounds the paid
+    # AI cost per run. The old code built an in-memory set of every matched
+    # extracted_job_id and paginated to dodge PostgREST's 1000-row cap; direct
+    # Postgres needs neither, so the anti-join + LIMIT does both jobs in one
+    # query. raw_jobs is LEFT-JOINed and re-nested under a "raw_jobs" key so the
+    # rest of this function sees the exact shape the Supabase embed returned.
+    rows = db.fetchall(
+        """
+        SELECT e.id, e.normalized_title, e.seniority, e.location, e.country, e.industry,
+               r.company         AS raw_company,
+               r.raw_description AS raw_description
+          FROM extracted_jobs e
+          LEFT JOIN raw_jobs r ON r.id = e.raw_job_id
+         WHERE e.industry = %s
+           AND NOT EXISTS (
+               SELECT 1 FROM role_matches m WHERE m.extracted_job_id = e.id
+           )
+         LIMIT %s
+        """,
+        (industry_slug, batch_size),
+    )
+    all_extracted: list[dict] = [
+        {
+            "id":               r["id"],
+            "normalized_title": r["normalized_title"],
+            "seniority":        r["seniority"],
+            "location":         r["location"],
+            "country":          r["country"],
+            "industry":         r["industry"],
+            "raw_jobs": {
+                "company":         r["raw_company"],
+                "raw_description": r["raw_description"],
+            },
+        }
+        for r in rows
+    ]
 
     log.info(f"Matching {len(all_extracted)} jobs against {len(canonical_roles)} canonical roles for {industry_slug}…")
 
@@ -430,12 +418,17 @@ def run_matcher(
             # Threshold lowered from 0.10 to 0.05 so more borderline candidates
             # get a real AI judgment instead of being thrown away.
             try:
-                _db_execute(lambda: supabase.table("role_matches").insert({
-                    "extracted_job_id":  job["id"],
-                    "canonical_role_id": top3[0]["role"]["id"] if top3 else canonical_roles[0]["id"],
-                    "confidence":        0.0,
-                    "status":            "rejected",
-                }), what="role_matches insert (pre-AI reject)")
+                _db_execute(lambda: db.execute(
+                    "INSERT INTO role_matches "
+                    "(extracted_job_id, canonical_role_id, confidence, status) "
+                    "VALUES (%s, %s, %s, %s)",
+                    (
+                        job["id"],
+                        top3[0]["role"]["id"] if top3 else canonical_roles[0]["id"],
+                        0.0,
+                        "rejected",
+                    ),
+                ), what="role_matches insert (pre-AI reject)")
             except Exception as e:
                 log.warning(f"  skipping job {job['id']} — reject insert failed after retries: {e}")
                 continue
@@ -459,12 +452,12 @@ def run_matcher(
         stats[status if status == "rejected" else ("matched" if status == "approved" else "pending")] += 1
 
         try:
-            _db_execute(lambda: supabase.table("role_matches").insert({
-                "extracted_job_id":  job["id"],
-                "canonical_role_id": best["id"],
-                "confidence":        round(confidence, 2),
-                "status":            status,
-            }), what="role_matches insert")
+            _db_execute(lambda: db.execute(
+                "INSERT INTO role_matches "
+                "(extracted_job_id, canonical_role_id, confidence, status) "
+                "VALUES (%s, %s, %s, %s)",
+                (job["id"], best["id"], round(confidence, 2), status),
+            ), what="role_matches insert")
         except Exception as e:
             log.warning(f"  skipping job {job['id']} — role_matches insert failed after retries: {e}")
             continue
@@ -475,42 +468,40 @@ def run_matcher(
         # computed live from role_matches at API time.
         if status == "approved" and (job.get("country") or "").upper() == "US":
             try:
-                _db_execute(lambda: supabase.rpc("increment_job_count", {"role_id": best["id"]}),
+                _db_execute(lambda: db.execute("SELECT increment_job_count(%s)", (best["id"],)),
                             what="increment_job_count")
             except Exception as e:
                 log.warning(f"  increment_job_count failed (non-fatal): {e}")
             # Phase 2.3 — doc Step 5 requires "company list" on each canonical role
             company = ((job.get("raw_jobs") or {}).get("company") or "").strip()
             if company:
-                _add_hiring_company(supabase, best["id"], company)
+                _add_hiring_company(db, best["id"], company)
 
     log.info(f"  {industry_slug}: {stats}")
     return stats
 
 
-def _add_hiring_company(supabase: Client, role_id: str, company: str) -> None:
+def _add_hiring_company(db, role_id: str, company: str) -> None:
     """Append `company` to canonical_roles.hiring_companies if not already present.
 
     Read-then-write keeps the array deduplicated. Postgres has no native
     array_distinct, and the matcher is single-threaded per industry so there's
-    no race here. If concurrency is added later, switch to a SQL RPC that does
-    DISTINCT-style append atomically.
+    no race here. If concurrency is added later, switch to a SQL function that
+    does DISTINCT-style append atomically.
     """
     try:
-        row = (
-            supabase.table("canonical_roles")
-            .select("hiring_companies")
-            .eq("id", role_id)
-            .single()
-            .execute()
+        row = db.fetchone(
+            "SELECT hiring_companies FROM canonical_roles WHERE id = %s",
+            (role_id,),
         )
-        current = (row.data or {}).get("hiring_companies") or []
+        current = (row or {}).get("hiring_companies") or []
         if company in current:
             return
         updated = current + [company]
-        supabase.table("canonical_roles").update(
-            {"hiring_companies": updated}
-        ).eq("id", role_id).execute()
+        db.execute(
+            "UPDATE canonical_roles SET hiring_companies = %s WHERE id = %s",
+            (updated, role_id),
+        )
     except Exception as e:
         # Don't crash the pipeline if this one update fails — the job count
         # already incremented and the match is still recorded.

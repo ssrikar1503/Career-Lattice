@@ -1,5 +1,5 @@
 import { isAdminAuthed } from '@/lib/admin-auth';
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { getPool, query, queryOne } from '@/lib/db';
 import { checkRateLimit, getClientIp, LIMITS } from '@/lib/rate-limit';
 
 /**
@@ -37,98 +37,89 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Invalid matchId or decision' }, { status: 400 });
   }
 
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
+  if (!getPool()) {
     return Response.json(
       { error: 'Database not connected' },
       { status: 503 },
     );
   }
 
-  // Snapshot current state BEFORE the update so we can compute the count delta.
-  const { data: existing } = await supabase
-    .from('role_matches')
-    .select('status, canonical_role_id, extracted_jobs(country, raw_jobs(company))')
-    .eq('id', matchId)
-    .single();
+  try {
+    // Snapshot current state BEFORE the update so we can compute the count delta.
+    const existing = await queryOne<{
+      status: string | null;
+      canonical_role_id: string | null;
+      country: string | null;
+      company: string | null;
+    }>(
+      `SELECT rm.status, rm.canonical_role_id, ej.country, rj.company
+         FROM role_matches        rm
+         LEFT JOIN extracted_jobs ej ON ej.id = rm.extracted_job_id
+         LEFT JOIN raw_jobs       rj ON rj.id = ej.raw_job_id
+        WHERE rm.id = $1`,
+      [matchId],
+    );
 
-  if (!existing) {
-    return Response.json({ error: 'Match not found' }, { status: 404 });
-  }
-
-  const oldStatus = (existing as { status?: string }).status ?? '';
-  const roleId    = (existing as { canonical_role_id?: string }).canonical_role_id ?? '';
-  const ej = ((existing as unknown) as {
-    extracted_jobs?: { country?: string; raw_jobs?: { company?: string } } | null;
-  }).extracted_jobs;
-  const country = (ej?.country || '').toUpperCase();
-  const company = (ej?.raw_jobs?.company || '').trim();
-
-  // Apply the status change.
-  const { error: matchErr } = await supabase
-    .from('role_matches')
-    .update({ status: decision })
-    .eq('id', matchId);
-
-  if (matchErr) {
-    return Response.json({ error: matchErr.message }, { status: 500 });
-  }
-
-  // Always record the human decision - even no-op same-status clicks, since
-  // the audit log is a record of human review, not of count changes.
-  await supabase.from('review_decisions').insert({
-    match_id:   matchId,
-    decided_by: 'admin',
-    decision,
-  });
-
-  // Count math - only US jobs feed the cached open_jobs_count column.
-  // Worldwide view live-aggregates from role_matches and is unaffected.
-  if (!roleId || country !== 'US') {
-    return Response.json({ ok: true });
-  }
-
-  const wasApproved    = oldStatus === 'approved';
-  const willBeApproved = decision  === 'approved';
-
-  // Same approval bit → no count change. Kills the historical double-count
-  // bug when an admin re-clicks Approve on an already-approved row.
-  if (wasApproved === willBeApproved) {
-    return Response.json({ ok: true });
-  }
-
-  if (willBeApproved) {
-    // Promotion: pending|rejected → approved
-    await supabase.rpc('increment_job_count', { role_id: roleId });
-
-    if (company) {
-      const { data: roleRow } = await supabase
-        .from('canonical_roles')
-        .select('hiring_companies')
-        .eq('id', roleId)
-        .single();
-      const current: string[] = roleRow?.hiring_companies || [];
-      if (!current.includes(company)) {
-        await supabase
-          .from('canonical_roles')
-          .update({ hiring_companies: [...current, company] })
-          .eq('id', roleId);
-      }
+    if (!existing) {
+      return Response.json({ error: 'Match not found' }, { status: 404 });
     }
-  } else {
-    // Demotion: approved → pending|rejected. No decrement RPC exists, so
-    // read-modify-write the count with a floor of 0.
-    const { data: roleRow } = await supabase
-      .from('canonical_roles')
-      .select('open_jobs_count')
-      .eq('id', roleId)
-      .single();
-    const nextCount = Math.max(0, (roleRow?.open_jobs_count ?? 0) - 1);
-    await supabase
-      .from('canonical_roles')
-      .update({ open_jobs_count: nextCount })
-      .eq('id', roleId);
-  }
 
-  return Response.json({ ok: true });
+    const oldStatus = existing.status ?? '';
+    const roleId    = existing.canonical_role_id ?? '';
+    const country   = (existing.country || '').toUpperCase();
+    const company   = (existing.company || '').trim();
+
+    // Apply the status change.
+    await query(`UPDATE role_matches SET status = $1 WHERE id = $2`, [decision, matchId]);
+
+    // Always record the human decision - even no-op same-status clicks, since
+    // the audit log is a record of human review, not of count changes.
+    await query(
+      `INSERT INTO review_decisions (match_id, decided_by, decision)
+       VALUES ($1, $2, $3)`,
+      [matchId, 'admin', decision],
+    );
+
+    // Count math - only US jobs feed the cached open_jobs_count column.
+    // Worldwide view live-aggregates from role_matches and is unaffected.
+    if (!roleId || country !== 'US') {
+      return Response.json({ ok: true });
+    }
+
+    const wasApproved    = oldStatus === 'approved';
+    const willBeApproved = decision  === 'approved';
+
+    // Same approval bit → no count change. Kills the historical double-count
+    // bug when an admin re-clicks Approve on an already-approved row.
+    if (wasApproved === willBeApproved) {
+      return Response.json({ ok: true });
+    }
+
+    if (willBeApproved) {
+      // Promotion: pending|rejected → approved
+      await query(`SELECT increment_job_count($1)`, [roleId]);
+
+      if (company) {
+        // Append the company only if not already present (atomic, append-only).
+        await query(
+          `UPDATE canonical_roles
+              SET hiring_companies = array_append(hiring_companies, $2)
+            WHERE id = $1 AND NOT ($2 = ANY(hiring_companies))`,
+          [roleId, company],
+        );
+      }
+    } else {
+      // Demotion: approved → pending|rejected. Decrement with a floor of 0.
+      await query(
+        `UPDATE canonical_roles
+            SET open_jobs_count = GREATEST(0, open_jobs_count - 1)
+          WHERE id = $1`,
+        [roleId],
+      );
+    }
+
+    return Response.json({ ok: true });
+  } catch (err) {
+    return Response.json({ error: (err as Error).message }, { status: 500 });
+  }
 }

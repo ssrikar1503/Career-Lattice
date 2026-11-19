@@ -33,10 +33,10 @@ import requests
 import time
 import logging
 from datetime import datetime, timezone
-from supabase import Client
 
 from companies_loader import companies_for
 from scrapers.filters import title_passes, location_passes
+from scrapers.raw_jobs_upsert import batch_upsert as _batch_upsert
 
 log = logging.getLogger(__name__)
 
@@ -48,28 +48,11 @@ PAGE_SIZE = 20
 # 10,000 jobs per company is well above the largest legitimate board.
 MAX_PAGES = 500
 
-# Batch upserts so big companies (NVIDIA ~2K, Micron ~3K) don't pile up
-# thousands of HTTP/2 streams on a single Supabase connection — the pooler
-# closes the connection after ~20K streams, which crashed an earlier run.
+# Batch upserts so big companies (NVIDIA ~2K, Micron ~3K) don't open thousands
+# of connections. See scrapers/raw_jobs_upsert.py for the shared
+# ON CONFLICT (url) DO NOTHING implementation. This constant also controls how
+# often the pagination loop flushes its buffer (every UPSERT_BATCH_SIZE * 4).
 UPSERT_BATCH_SIZE = 50
-
-
-def _batch_upsert(supabase: Client, rows: list[dict], company_slug: str) -> int:
-    if not rows:
-        return 0
-    inserted = 0
-    for i in range(0, len(rows), UPSERT_BATCH_SIZE):
-        batch = rows[i:i + UPSERT_BATCH_SIZE]
-        try:
-            result = (
-                supabase.table("raw_jobs")
-                .upsert(batch, on_conflict="url", ignore_duplicates=True)
-                .execute()
-            )
-            inserted += len(result.data or [])
-        except Exception as e:
-            log.error(f"Batch upsert failed for {company_slug} (rows {i}-{i+len(batch)}): {e}")
-    return inserted
 
 HEADERS = {
     "Content-Type": "application/json",
@@ -105,7 +88,7 @@ def _build_raw_description(title: str, locations: str, bullets: list[str], poste
     return "\n\n".join(parts)
 
 
-def scrape_company(company: dict, supabase: Client, dead_slugs: list[str]) -> int:
+def scrape_company(company: dict, db, dead_slugs: list[str]) -> int:
     """Fetch every job for one Workday company, paginating until exhausted."""
     slug   = company["slug"]
     tenant = company.get("tenant")
@@ -207,7 +190,7 @@ def scrape_company(company: dict, supabase: Client, dead_slugs: list[str]) -> in
 
         # Flush periodically so a big company doesn't sit on a multi-MB buffer.
         if len(buffer) >= UPSERT_BATCH_SIZE * 4:  # flush every ~200 rows
-            inserted += _batch_upsert(supabase, buffer, slug)
+            inserted += _batch_upsert(db, buffer, slug)
             buffer.clear()
 
         # Termination — we've fetched at least as many as Workday claimed exist
@@ -221,13 +204,13 @@ def scrape_company(company: dict, supabase: Client, dead_slugs: list[str]) -> in
 
     # Flush whatever's left
     if buffer:
-        inserted += _batch_upsert(supabase, buffer, slug)
+        inserted += _batch_upsert(db, buffer, slug)
 
     log.info(f"  {slug}: {inserted} new jobs inserted (pages: {pages_fetched})")
     return inserted
 
 
-def run_workday(supabase: Client, industries: list[str] | None = None) -> dict[str, int]:
+def run_workday(db, industries: list[str] | None = None) -> dict[str, int]:
     """Run the Workday scraper for all companies in companies.json with ats=='workday'."""
     totals: dict[str, int] = {}
     dead_slugs: list[str] = []
@@ -243,7 +226,7 @@ def run_workday(supabase: Client, industries: list[str] | None = None) -> dict[s
         log.info(f"Scraping Workday for {industry} ({len(companies)} companies)…")
         for company in companies:
             try:
-                n = scrape_company(company, supabase, dead_slugs)
+                n = scrape_company(company, db, dead_slugs)
             except Exception as e:
                 # Belt-and-suspenders — never let one company's unexpected crash
                 # take down the whole weekly run (extractor + matcher depend on

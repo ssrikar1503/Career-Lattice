@@ -2,7 +2,8 @@
 Taxonomy Seeder — PHASE_B of deployment.
 ==========================================
 One-time script that uploads the JSON taxonomies (36 AM + ~45 Semi + 38 Space roles)
-into the Supabase database so the pipeline has something to match jobs against.
+into the Cloud SQL Postgres database so the pipeline has something to match
+jobs against.
 
 Idempotent: safe to run multiple times. For each industry, it:
   1. Inserts the industry row if missing, else updates it
@@ -12,16 +13,16 @@ Idempotent: safe to run multiple times. For each industry, it:
 Note: re-running this resets canonical_roles.open_jobs_count to 0. The next
 pipeline run will repopulate counts. For v1 this is acceptable.
 
-We deliberately avoid PostgREST's `upsert` because supabase-py 2.30 + PostgREST 13
-return a confusing PGRST125 ("Invalid path") error on conflict-target params.
-Explicit select-then-insert/update is more code but works on any version.
+We keep the explicit select-then-insert/update (instead of a single upsert)
+because it is easy to read and makes the "update existing vs insert new"
+branch obvious in the logs.
 
 Usage (in GitHub Actions):
     Triggered manually via the "Seed taxonomy data" workflow.
 
 Usage (locally):
     cd apps/pipeline
-    cp .env.example .env      # then fill in SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
+    cp .env.example .env      # then fill in DATABASE_URL
     pip install -r requirements.txt
     python seed_taxonomy.py
 """
@@ -32,7 +33,8 @@ import sys
 import logging
 from pathlib import Path
 from dotenv import load_dotenv
-from supabase import create_client, Client
+
+import db
 
 load_dotenv()
 
@@ -47,77 +49,71 @@ JSON_DIR   = Path(__file__).parent.parent / "web" / "src" / "data"
 JSON_FILES = ["additive-manufacturing.json", "semiconductors.json", "space.json", "nuclear.json"]
 
 
-def verify_schema(supabase: Client) -> bool:
+def verify_schema(db) -> bool:
     """
     Ensure required tables exist before we try to seed anything.
-    Gives a much clearer error than the deep PostgREST stack trace
-    if the user forgot to run schema.sql.
+    Gives a much clearer error than a deep stack trace if the user forgot to
+    run schema.sql.
     """
     required = ["industries", "canonical_roles"]
     for table in required:
         try:
-            supabase.table(table).select("id").limit(1).execute()
+            # Table names come from the fixed `required` list above, never user
+            # input, so interpolating them into the query is safe.
+            db.fetchone(f"SELECT id FROM {table} LIMIT 1")
         except Exception as e:
             log.error(f"Table '{table}' is not accessible: {e}")
             log.error("")
-            log.error("Likely cause: schema.sql has not been run in this Supabase project.")
+            log.error("Likely cause: schema.sql has not been run on this Postgres database.")
             log.error("Fix:")
-            log.error("  1. Open your Supabase project → SQL Editor")
-            log.error("  2. New query → paste the entire contents of /schema.sql")
-            log.error("  3. Click 'Run' — wait for 'Success'")
+            log.error("  1. Connect to the Cloud SQL database (psql or the Cloud SQL Studio)")
+            log.error("  2. Paste the entire contents of /schema.sql")
+            log.error("  3. Run it — wait for success")
             log.error("  4. Re-run this seeder workflow")
             return False
     log.info(f"Schema verified: all {len(required)} required tables present")
     return True
 
 
-def upsert_industry(supabase: Client, ind: dict) -> str:
+def upsert_industry(db, ind: dict) -> str:
     """
     Insert industry row or update existing one matched by slug.
     Returns the industry UUID (whether newly created or pre-existing).
     """
-    row = {
-        "name":        ind["name"],
-        "slug":        ind["slug"],
-        "description": ind["description"],
-        "color":       ind["color"],
-    }
-
-    existing = (
-        supabase.table("industries")
-        .select("id")
-        .eq("slug", ind["slug"])
-        .execute()
+    existing = db.fetchone(
+        "SELECT id FROM industries WHERE slug = %s",
+        (ind["slug"],),
     )
 
-    if existing.data:
-        industry_id = existing.data[0]["id"]
-        (
-            supabase.table("industries")
-            .update(row)
-            .eq("id", industry_id)
-            .execute()
+    if existing:
+        industry_id = existing["id"]
+        db.execute(
+            "UPDATE industries SET name = %s, slug = %s, description = %s, color = %s "
+            "WHERE id = %s",
+            (ind["name"], ind["slug"], ind["description"], ind["color"], industry_id),
         )
         log.info(f"  updated existing industry → uuid {industry_id}")
     else:
-        result = supabase.table("industries").insert(row).execute()
-        industry_id = result.data[0]["id"]
+        inserted = db.fetchone(
+            "INSERT INTO industries (name, slug, description, color) "
+            "VALUES (%s, %s, %s, %s) RETURNING id",
+            (ind["name"], ind["slug"], ind["description"], ind["color"]),
+        )
+        industry_id = inserted["id"]
         log.info(f"  inserted new industry → uuid {industry_id}")
 
     return industry_id
 
 
-def replace_canonical_roles(supabase: Client, industry_id: str, roles: list[dict]) -> int:
+def replace_canonical_roles(db, industry_id: str, roles: list[dict]) -> int:
     """
     Delete all canonical_roles for this industry, then insert fresh ones.
     Returns count inserted.
     """
     # 1. Clear existing
-    (
-        supabase.table("canonical_roles")
-        .delete()
-        .eq("industry_id", industry_id)
-        .execute()
+    db.execute(
+        "DELETE FROM canonical_roles WHERE industry_id = %s",
+        (industry_id,),
     )
     log.info("  cleared existing canonical_roles for this industry")
 
@@ -140,29 +136,35 @@ def replace_canonical_roles(supabase: Client, industry_id: str, roles: list[dict
         return [s.get("name", "") for s in skills if s.get("name")]
 
     rows = [
-        {
-            "industry_id":     industry_id,
-            "title":           role["title"],
-            "cluster":         role["cluster"],
-            "seniority":       role["seniority"],
-            "salary_min":      role["salary_min"],
-            "salary_max":      role["salary_max"],
-            "degree_required": _normalize_degree(role["degree_required"]),
-            "skills":          _flatten_skills(role["skills"]),
-            "certifications":  role["certifications"],
-            "description":     role["description"],
-        }
+        (
+            industry_id,
+            role["title"],
+            role["cluster"],
+            role["seniority"],
+            role["salary_min"],
+            role["salary_max"],
+            _normalize_degree(role["degree_required"]),
+            _flatten_skills(role["skills"]),   # list -> TEXT[] natively
+            role["certifications"],            # list -> TEXT[] natively
+            role["description"],
+        )
         for role in roles
     ]
 
     # 3. Bulk insert
-    supabase.table("canonical_roles").insert(rows).execute()
+    db.executemany(
+        "INSERT INTO canonical_roles "
+        "(industry_id, title, cluster, seniority, salary_min, salary_max, "
+        "degree_required, skills, certifications, description) "
+        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        rows,
+    )
     log.info(f"  inserted {len(rows)} canonical_roles")
 
     return len(rows)
 
 
-def replace_pathways(supabase: Client, industry_id: str, data: dict) -> int:
+def replace_pathways(db, industry_id: str, data: dict) -> int:
     """
     Phase 4 — seed pathways for this industry.
 
@@ -173,7 +175,7 @@ def replace_pathways(supabase: Client, industry_id: str, data: dict) -> int:
     Idempotent — clears existing pathways for this industry, then inserts fresh.
     """
     # 1. Clear existing pathways
-    supabase.table("pathways").delete().eq("industry_id", industry_id).execute()
+    db.execute("DELETE FROM pathways WHERE industry_id = %s", (industry_id,))
     log.info("  cleared existing pathways for this industry")
 
     pathways = data.get("pathways", [])
@@ -190,21 +192,19 @@ def replace_pathways(supabase: Client, industry_id: str, data: dict) -> int:
             json_id_to_title[jid] = title
 
     # 3. Pull the DB title → UUID map we just inserted
-    db_rows = (
-        supabase.table("canonical_roles")
-        .select("id, title")
-        .eq("industry_id", industry_id)
-        .execute()
+    db_rows = db.fetchall(
+        "SELECT id, title FROM canonical_roles WHERE industry_id = %s",
+        (industry_id,),
     )
     title_to_uuid: dict[str, str] = {}
-    for r in (db_rows.data or []):
+    for r in db_rows:
         if r.get("title") and r.get("id"):
             title_to_uuid[r["title"].lower().strip()] = r["id"]
 
     # 4. Build pathway rows with translated role_ids
     pathway_rows = []
     for pw in pathways:
-        translated_uuids: list[str] = []
+        translated_uuids: list = []
         for jid in pw.get("role_ids", []):
             title = json_id_to_title.get(jid)
             if not title:
@@ -216,49 +216,50 @@ def replace_pathways(supabase: Client, industry_id: str, data: dict) -> int:
         if not translated_uuids:
             log.warning(f"  pathway {pw.get('name')!r} has no resolvable roles — skipped")
             continue
-        pathway_rows.append({
-            "industry_id": industry_id,
-            "name":        pw.get("name", ""),
-            "description": pw.get("description", ""),
-            "role_ids":    translated_uuids,
-        })
+        pathway_rows.append((
+            industry_id,
+            pw.get("name", ""),
+            pw.get("description", ""),
+            translated_uuids,   # list of UUIDs -> UUID[] column
+        ))
 
     if not pathway_rows:
         log.info("  no pathways translated successfully — none inserted")
         return 0
 
-    supabase.table("pathways").insert(pathway_rows).execute()
+    db.executemany(
+        "INSERT INTO pathways (industry_id, name, description, role_ids) "
+        "VALUES (%s, %s, %s, %s::uuid[])",  # explicit cast: role_ids is UUID[]
+        pathway_rows,
+    )
     log.info(f"  inserted {len(pathway_rows)} pathways")
     return len(pathway_rows)
 
 
-def seed_industry(supabase: Client, data: dict) -> int:
+def seed_industry(db, data: dict) -> int:
     ind = data["industry"]
     log.info(f"Seeding industry: {ind['name']}")
-    industry_id = upsert_industry(supabase, ind)
-    role_count    = replace_canonical_roles(supabase, industry_id, data["roles"])
-    pathway_count = replace_pathways(supabase, industry_id, data)
+    industry_id = upsert_industry(db, ind)
+    role_count    = replace_canonical_roles(db, industry_id, data["roles"])
+    pathway_count = replace_pathways(db, industry_id, data)
     log.info(f"  {ind['name']}: {role_count} roles + {pathway_count} pathways seeded")
     return role_count
 
 
 def main() -> int:
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    database_url = os.environ.get("DATABASE_URL")
 
-    if not url or not key:
-        log.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.")
-        log.error("In GitHub Actions: set as repository secrets.")
-        log.error("Locally: put them in apps/pipeline/.env")
+    if not database_url:
+        log.error("Missing DATABASE_URL.")
+        log.error("In GitHub Actions: set as a repository secret.")
+        log.error("Locally: put it in apps/pipeline/.env")
         return 1
-
-    supabase = create_client(url, key)
 
     log.info("=" * 50)
     log.info("Career Pathways — Taxonomy Seeder")
     log.info("=" * 50)
 
-    if not verify_schema(supabase):
+    if not verify_schema(db):
         return 1
 
     # Optional scope: SEED_INDUSTRIES="nuclear" (space/comma separated slugs)
@@ -284,7 +285,7 @@ def main() -> int:
         with open(path) as f:
             data = json.load(f)
 
-        total_roles += seed_industry(supabase, data)
+        total_roles += seed_industry(db, data)
         log.info("")
 
     log.info("=" * 50)

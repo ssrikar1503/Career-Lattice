@@ -10,9 +10,10 @@ Orchestrates all 5 steps of the weekly data pipeline:
   Step 5: Aggregation→ canonical_roles job counts updated (done inside matcher)
 
 AI provider strategy:
-  Supabase is required. AI providers are optional individually but at least
-  ONE of (ANTHROPIC_API_KEY, GEMINI_API_KEY) must be set. Extractor and matcher
-  use Claude first when available, fall back to Gemini automatically.
+  A Postgres database (DATABASE_URL) is required. AI providers are optional
+  individually but at least ONE of (ANTHROPIC_API_KEY, GEMINI_API_KEY) must be
+  set. Extractor and matcher use Claude first when available, fall back to
+  Gemini automatically.
 
 Run manually:   python main.py
 Run in CI:      triggered by .github/workflows/ingest.yml (weekly cron)
@@ -26,8 +27,8 @@ from datetime import datetime, timezone
 from typing import Optional
 from dotenv import load_dotenv
 from anthropic import Anthropic
-from supabase import create_client, Client
 
+import db
 from scrapers.greenhouse import run_greenhouse
 from scrapers.lever      import run_lever
 from scrapers.workday    import run_workday
@@ -44,7 +45,9 @@ logging.basicConfig(
 )
 # Phase 4 — silence per-request HTTP logging from httpx / httpcore so the
 # pipeline log stays readable. Every Supabase write used to emit an INFO line,
-# burying the actual pipeline progress messages.
+# burying the actual pipeline progress messages. (Harmless now that DB access
+# goes straight to Postgres via psycopg, but kept so any stray httpx use from
+# the AI SDKs stays quiet too.)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 log = logging.getLogger("pipeline")
@@ -52,24 +55,27 @@ log = logging.getLogger("pipeline")
 INDUSTRIES = ["additive-manufacturing", "semiconductors", "space", "nuclear"]
 
 
-def get_clients() -> tuple[Client, Optional[Anthropic]]:
+def get_clients() -> tuple[object, Optional[Anthropic]]:
     """
-    Returns (supabase_client, anthropic_client_or_None).
+    Returns (db_module, anthropic_client_or_None).
 
-    Required:    SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
+    The first element is the `db` module itself — the pipeline's database
+    handle. It is threaded through the scrapers / extractor / matcher exactly
+    where the Supabase client used to be, and exposes get_conn() plus the
+    fetchall/fetchone/execute/executemany helpers backed by psycopg.
+
+    Required:    DATABASE_URL (Cloud SQL Postgres connection string)
     Required:    at least one of ANTHROPIC_API_KEY, GROQ_API_KEY, or GEMINI_API_KEY
     Provider chain at runtime: Claude → Groq → Gemini (each step is optional).
     """
-    supabase_url  = os.environ.get("SUPABASE_URL")
-    supabase_key  = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    database_url  = os.environ.get("DATABASE_URL")
     anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
     groq_key      = os.environ.get("GROQ_API_KEY")
     gemini_key    = os.environ.get("GEMINI_API_KEY")
 
-    # Supabase is hard-required
+    # The database is hard-required
     missing_required = []
-    if not supabase_url: missing_required.append("SUPABASE_URL")
-    if not supabase_key: missing_required.append("SUPABASE_SERVICE_ROLE_KEY")
+    if not database_url: missing_required.append("DATABASE_URL")
 
     if missing_required:
         log.error(f"Missing required environment variables: {', '.join(missing_required)}")
@@ -93,7 +99,7 @@ def get_clients() -> tuple[Client, Optional[Anthropic]]:
     anthropic_client = Anthropic(api_key=anthropic_key) if anthropic_key else None
 
     return (
-        create_client(supabase_url, supabase_key),
+        db,
         anthropic_client,
     )
 
@@ -109,16 +115,16 @@ def run(
     log.info(f"Pipeline started at {start.strftime('%Y-%m-%d %H:%M UTC')}")
     log.info(f"Industries: {', '.join(target)}")
 
-    supabase, anthropic = get_clients()
+    database, anthropic = get_clients()
 
     # ── Step 1: Scrape ────────────────────────────────────────────────────────
     if not skip_scrape:
         log.info("=" * 50)
         log.info("STEP 1 — Scrapers")
-        gh_totals = run_greenhouse(supabase, target)
-        lv_totals = run_lever(supabase, target)
-        wd_totals = run_workday(supabase, target)
-        ab_totals = run_ashby(supabase, target)
+        gh_totals = run_greenhouse(database, target)
+        lv_totals = run_lever(database, target)
+        wd_totals = run_workday(database, target)
+        ab_totals = run_ashby(database, target)
         total_new = sum(gh_totals.values()) + sum(lv_totals.values()) + sum(wd_totals.values()) + sum(ab_totals.values())
         log.info(f"Scrapers done: {total_new} new raw jobs")
     else:
@@ -131,7 +137,7 @@ def run(
     if not skip_extract:
         log.info("=" * 50)
         log.info("STEP 2 — Extractor")
-        extracted = run_extractor(supabase, anthropic, batch_size=25000)
+        extracted = run_extractor(database, anthropic, batch_size=25000)
         log.info(f"Extractor done: {extracted} jobs extracted")
     else:
         log.info("STEP 2 — Skipped (--skip-extract)")
@@ -150,7 +156,7 @@ def run(
         log.info("STEP 3+4 — Ontology Matcher + Routing")
         all_stats = {"matched": 0, "pending": 0, "rejected": 0}
         for industry in target:
-            stats = run_matcher(supabase, anthropic, industry, batch_size=matcher_batch)
+            stats = run_matcher(database, anthropic, industry, batch_size=matcher_batch)
             for k in all_stats:
                 all_stats[k] += stats.get(k, 0)
         log.info(f"Matcher done: {all_stats}")

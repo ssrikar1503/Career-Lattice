@@ -13,14 +13,13 @@ Why no AI:
   capped daily throughput to ~60 jobs on free tiers. The semantic step is the
   matcher; extraction is mechanical. Keeping AI here was wasted budget.
 
-The function signature `run_extractor(supabase, anthropic, batch_size)` is
+The function signature `run_extractor(db, anthropic, batch_size)` is
 preserved so main.py still calls it with the anthropic client; the param is
 unused.
 """
 
 import re
 import logging
-from supabase import Client
 
 log = logging.getLogger(__name__)
 
@@ -216,7 +215,7 @@ def extract_job(raw_job: dict) -> dict:
     }
 
 
-def run_extractor(supabase: Client, anthropic=None, batch_size: int = 200) -> int:
+def run_extractor(db, anthropic=None, batch_size: int = 200) -> int:
     """
     Find raw_jobs that have no extracted_job yet, extract each one
     deterministically. Returns the number of jobs extracted.
@@ -224,79 +223,34 @@ def run_extractor(supabase: Client, anthropic=None, batch_size: int = 200) -> in
     The `anthropic` parameter is accepted for backward compatibility with
     main.py's call signature but is no longer used.
     """
-    # Fetch only raw_jobs that have no extracted_jobs row yet, using a
-    # PostgREST anti-join (left embed + is.null on the embedded resource).
-    # The previous approach fetched the first `batch_size` raw_jobs and then
-    # filtered out the already-extracted ones. Once raw_jobs grew past
-    # 25,000 rows (Aug 2026) every new posting landed beyond that window and
-    # was silently never extracted or matched. Oldest first so a backlog
-    # drains in scrape order; .range() pagination because PostgREST caps a
-    # single response at 1000 rows.
-    PAGE = 1000
-    to_process: list[dict] = []
-    offset = 0
-    try:
-        while len(to_process) < batch_size:
-            result = (
-                supabase.table("raw_jobs")
-                .select("id, raw_title, company, raw_description, industry, extracted_jobs!left(raw_job_id)")
-                .is_("extracted_jobs", "null")
-                .order("created_at").order("id")
-                .range(offset, offset + PAGE - 1)
-                .execute()
-            )
-            rows = result.data or []
-            for r in rows:
-                r.pop("extracted_jobs", None)
-            to_process.extend(rows)
-            if len(rows) < PAGE:
-                break
-            offset += PAGE
-        to_process = to_process[:batch_size]
-        log.info(f"Extracting {len(to_process)} new jobs (anti-join query)…")
-    except Exception as e:
-        # Fallback: full uncapped scan of raw_jobs, then filter out ids that
-        # already have an extracted row. Slower (one IN-list request per 100
-        # ids) but does not depend on embedded-resource null filtering.
-        log.warning(f"Anti-join query failed ({e}); falling back to full scan.")
-        all_raw: list[dict] = []
-        offset = 0
-        while True:
-            result = (
-                supabase.table("raw_jobs")
-                .select("id, raw_title, company, raw_description, industry")
-                .order("created_at").order("id")
-                .range(offset, offset + PAGE - 1)
-                .execute()
-            )
-            rows = result.data or []
-            all_raw.extend(rows)
-            if len(rows) < PAGE:
-                break
-            offset += PAGE
-        CHUNK_SIZE = 100
-        raw_ids = [r["id"] for r in all_raw]
-        already_done: set[str] = set()
-        for i in range(0, len(raw_ids), CHUNK_SIZE):
-            chunk = raw_ids[i:i + CHUNK_SIZE]
-            extracted_result = (
-                supabase.table("extracted_jobs")
-                .select("raw_job_id")
-                .in_("raw_job_id", chunk)
-                .execute()
-            )
-            for r in (extracted_result.data or []):
-                already_done.add(r["raw_job_id"])
-        to_process = [r for r in all_raw if r["id"] not in already_done][:batch_size]
-        log.info(f"Extracting {len(to_process)} new jobs (skipping {len(already_done)} already done, scanned {len(all_raw)})…")
+    # Fetch only raw_jobs that have no extracted_jobs row yet, using a plain
+    # SQL anti-join (LEFT JOIN … WHERE e.raw_job_id IS NULL). The previous
+    # approach fetched the first `batch_size` raw_jobs and then filtered out
+    # the already-extracted ones. Once raw_jobs grew past 25,000 rows
+    # (Aug 2026) every new posting landed beyond that window and was silently
+    # never extracted or matched. Oldest first so a backlog drains in scrape
+    # order; LIMIT bounds the batch. (Direct Postgres has no 1000-row response
+    # cap, so the old .range() pagination and the PostgREST-specific fallback
+    # scan are no longer needed.)
+    to_process: list[dict] = db.fetchall(
+        """
+        SELECT r.id, r.raw_title, r.company, r.raw_description, r.industry
+          FROM raw_jobs r
+          LEFT JOIN extracted_jobs e ON e.raw_job_id = r.id
+         WHERE e.raw_job_id IS NULL
+         ORDER BY r.created_at, r.id
+         LIMIT %s
+        """,
+        (batch_size,),
+    )
+    log.info(f"Extracting {len(to_process)} new jobs (anti-join query)…")
 
     if not to_process:
         log.info("No new raw jobs to extract.")
         return 0
 
     # Build all rows up-front (deterministic parsing — no I/O), then batch
-    # insert. Per-row inserts on 15K-row backlogs took 30-60 minutes and risked
-    # hitting Supabase's HTTP/2 stream cap (~20K streams per connection).
+    # insert. Per-row inserts on 15K-row backlogs took 30-60 minutes.
     rows: list[dict] = []
     for raw in to_process:
         fields = extract_job(raw)
@@ -310,6 +264,18 @@ def run_extractor(supabase: Client, anthropic=None, batch_size: int = 200) -> in
             "industry":         raw.get("industry"),
         })
 
+    INSERT_SQL = (
+        "INSERT INTO extracted_jobs "
+        "(raw_job_id, normalized_title, skills, seniority, location, country, industry) "
+        "VALUES (%s, %s, %s, %s, %s, %s, %s)"
+    )
+
+    def _row_params(row: dict) -> tuple:
+        return (
+            row["raw_job_id"], row["normalized_title"], row["skills"],
+            row["seniority"], row["location"], row["country"], row["industry"],
+        )
+
     INSERT_BATCH = 50
     extracted_count = 0
     total_batches = (len(rows) + INSERT_BATCH - 1) // INSERT_BATCH
@@ -317,15 +283,16 @@ def run_extractor(supabase: Client, anthropic=None, batch_size: int = 200) -> in
         batch = rows[i:i + INSERT_BATCH]
         batch_no = (i // INSERT_BATCH) + 1
         try:
-            result = supabase.table("extracted_jobs").insert(batch).execute()
-            extracted_count += len(result.data or [])
+            # Atomic batch insert (executemany in one transaction) — on failure
+            # it rolls back cleanly so the per-row fallback can retry each row.
+            extracted_count += db.executemany(INSERT_SQL, [_row_params(r) for r in batch])
         except Exception as e:
             log.error(f"Batch insert failed (batch {batch_no}/{total_batches}): {e}")
             # Fall back to per-row inserts for this batch so one bad row
             # doesn't lose the other 49 in the batch.
             for row in batch:
                 try:
-                    supabase.table("extracted_jobs").insert(row).execute()
+                    db.execute(INSERT_SQL, _row_params(row))
                     extracted_count += 1
                 except Exception as e2:
                     log.error(f"Row insert failed for {row['raw_job_id']}: {e2}")

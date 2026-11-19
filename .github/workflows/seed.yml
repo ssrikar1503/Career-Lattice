@@ -1,10 +1,11 @@
 name: Seed taxonomy data
 
 # Manually-triggered one-off workflow that uploads the canonical taxonomies
-# (AM + Semi) from JSON into Supabase. Run this ONCE after creating your
-# Supabase project — before triggering the ingestion pipeline.
+# from JSON into Cloud SQL. Run this ONCE after creating the Cloud SQL
+# database (schema.cloudsql.sql applied) — before triggering the ingestion
+# pipeline.
 #
-# Safe to re-run. Each run replaces canonical_roles for both industries.
+# Safe to re-run. Each run replaces canonical_roles for the seeded industries.
 
 on:
   workflow_dispatch:
@@ -34,10 +35,27 @@ jobs:
       - name: Install dependencies
         run: pip install -r apps/pipeline/requirements.txt
 
+      # Connect to Cloud SQL via the Cloud SQL Auth Proxy. Required repo secrets:
+      #   GCP_SA_KEY, CLOUD_SQL_INSTANCE, DATABASE_URL  (see ingest.yml).
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Start Cloud SQL Auth Proxy
+        run: |
+          curl -sL -o cloud-sql-proxy \
+            https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.1/cloud-sql-proxy.linux.amd64
+          chmod +x cloud-sql-proxy
+          ./cloud-sql-proxy --port 5432 "${{ secrets.CLOUD_SQL_INSTANCE }}" &
+          for i in $(seq 1 15); do
+            (exec 3<>/dev/tcp/127.0.0.1/5432) 2>/dev/null && { exec 3>&-; break; }
+            sleep 1
+          done
+
       - name: Run seeder
         working-directory: apps/pipeline
         env:
-          SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SEED_INDUSTRIES:           ${{ github.event.inputs.industries }}
+          DATABASE_URL:    ${{ secrets.DATABASE_URL }}
+          SEED_INDUSTRIES: ${{ github.event.inputs.industries }}
         run: python seed_taxonomy.py

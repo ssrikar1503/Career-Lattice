@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from './supabase';
+import { getPool, query } from './db';
 
 /**
  * Live-openings digest for dolphIQ.
@@ -55,49 +55,48 @@ export async function getLiveOpeningsBlock(
   const hit = cache.get(industrySlug);
   if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.block;
 
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return '';
+  if (!getPool()) return '';
 
   try {
-    const { data: ind } = await supabase
-      .from('industries').select('id').eq('slug', industrySlug).single();
-    if (!ind) return '';
+    const indRows = await query<{ id: string }>(
+      `SELECT id FROM industries WHERE slug = $1 LIMIT 1`,
+      [industrySlug],
+    );
+    const industryId = indRows[0]?.id;
+    if (!industryId) return '';
 
-    const { data: roles } = await supabase
-      .from('canonical_roles')
-      .select('id, title')
-      .eq('industry_id', ind.id);
-    if (!roles?.length) return '';
-    const titleById = new Map(roles.map(r => [r.id, r.title]));
+    // Every approved match in this industry, joined to its posting's
+    // location/company. Direct SQL has no 1000-row cap, so one query
+    // returns the full set (and the industry filter is in the JOIN).
+    const rows = await query<{
+      canonical_role_id: string;
+      title: string | null;
+      location: string | null;
+      country: string | null;
+      company: string | null;
+    }>(
+      `SELECT rm.canonical_role_id, cr.title, ej.location, ej.country, rj.company
+         FROM role_matches    rm
+         JOIN canonical_roles cr ON cr.id = rm.canonical_role_id
+         JOIN extracted_jobs  ej ON ej.id = rm.extracted_job_id
+         JOIN raw_jobs        rj ON rj.id = ej.raw_job_id
+        WHERE cr.industry_id = $1 AND rm.status = 'approved'`,
+      [industryId],
+    );
+    if (rows.length === 0) return '';
 
-    // Approved matches with their job's location/company. Page past the
-    // 1000-row PostgREST cap the same way the pipeline does.
-    const PAGE = 1000;
+    const titleById = new Map<string, string>();
     const byRole = new Map<string, RoleOpenings>();
-    for (let offset = 0; ; offset += PAGE) {
-      const { data: rows } = await supabase
-        .from('role_matches')
-        .select('canonical_role_id, extracted_jobs(location, country, raw_jobs(company))')
-        .eq('status', 'approved')
-        .range(offset, offset + PAGE - 1);
-      if (!rows?.length) break;
-
-      for (const m of rows as unknown as Array<{
-        canonical_role_id: string;
-        extracted_jobs: { location?: string; country?: string; raw_jobs?: { company?: string } } | null;
-      }>) {
-        if (!titleById.has(m.canonical_role_id)) continue; // other industry
-        const ej = m.extracted_jobs;
-        let agg = byRole.get(m.canonical_role_id);
-        if (!agg) { agg = { count: 0, usCount: 0, companies: new Map(), locations: new Map() }; byRole.set(m.canonical_role_id, agg); }
-        agg.count++;
-        if (ej?.country === 'US') agg.usCount++;
-        const company = companyName((ej?.raw_jobs?.company || '').trim());
-        if (company) agg.companies.set(company, (agg.companies.get(company) || 0) + 1);
-        const loc = (ej?.location || '').trim();
-        if (loc && loc !== 'XX' && !JUNK_LOCATION.test(loc)) agg.locations.set(loc, (agg.locations.get(loc) || 0) + 1);
-      }
-      if (rows.length < PAGE) break;
+    for (const m of rows) {
+      titleById.set(m.canonical_role_id, m.title || '');
+      let agg = byRole.get(m.canonical_role_id);
+      if (!agg) { agg = { count: 0, usCount: 0, companies: new Map(), locations: new Map() }; byRole.set(m.canonical_role_id, agg); }
+      agg.count++;
+      if (m.country === 'US') agg.usCount++;
+      const company = companyName((m.company || '').trim());
+      if (company) agg.companies.set(company, (agg.companies.get(company) || 0) + 1);
+      const loc = (m.location || '').trim();
+      if (loc && loc !== 'XX' && !JUNK_LOCATION.test(loc)) agg.locations.set(loc, (agg.locations.get(loc) || 0) + 1);
     }
 
     if (byRole.size === 0) return '';

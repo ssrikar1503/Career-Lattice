@@ -10,10 +10,10 @@ import requests
 import time
 import logging
 from datetime import datetime, timezone
-from supabase import Client
 
 from companies_loader import grouped_by_industry
 from scrapers.filters import title_passes
+from scrapers.raw_jobs_upsert import batch_upsert as _batch_upsert
 
 log = logging.getLogger(__name__)
 
@@ -24,34 +24,13 @@ log = logging.getLogger(__name__)
 BASE_URL = "https://boards-api.greenhouse.io/v1/boards/{company}/jobs"
 HEADERS  = {"User-Agent": "CareerPathwaysPlatform/1.0 (workforce-research)"}
 
-# Batch upserts to Supabase so one big company (~2K jobs) doesn't pile up 2K
-# HTTP/2 streams on one connection. Supabase's pooler closes the connection
-# after ~20K streams; per-job upserts hit that limit during a full-scale run.
+# Batch upserts so one big company (~2K jobs) doesn't open thousands of
+# connections. See scrapers/raw_jobs_upsert.py for the shared ON CONFLICT (url)
+# DO NOTHING implementation.
 UPSERT_BATCH_SIZE = 50
 
 
-def _batch_upsert(supabase: Client, rows: list[dict], company_slug: str) -> int:
-    """Upsert rows into raw_jobs in batches of UPSERT_BATCH_SIZE. Returns the
-    number of brand-new rows inserted (ignore_duplicates returns empty data
-    for URL conflicts, so this naturally excludes already-known jobs)."""
-    if not rows:
-        return 0
-    inserted = 0
-    for i in range(0, len(rows), UPSERT_BATCH_SIZE):
-        batch = rows[i:i + UPSERT_BATCH_SIZE]
-        try:
-            result = (
-                supabase.table("raw_jobs")
-                .upsert(batch, on_conflict="url", ignore_duplicates=True)
-                .execute()
-            )
-            inserted += len(result.data or [])
-        except Exception as e:
-            log.error(f"Batch upsert failed for {company_slug} (rows {i}-{i+len(batch)}): {e}")
-    return inserted
-
-
-def scrape_company(company: dict, supabase: Client, industry: str, dead_slugs: list[str]) -> int:
+def scrape_company(company: dict, db, industry: str, dead_slugs: list[str]) -> int:
     """Fetch all jobs for a Greenhouse company and upsert to raw_jobs.
 
     `dead_slugs` is a shared list the caller passes in; we append to it when
@@ -102,12 +81,12 @@ def scrape_company(company: dict, supabase: Client, industry: str, dead_slugs: l
             "scraped_at":       datetime.now(timezone.utc).isoformat(),
         })
 
-    inserted = _batch_upsert(supabase, rows, company_slug)
+    inserted = _batch_upsert(db, rows, company_slug)
     log.info(f"  {company_slug}: {len(jobs)} jobs fetched, {inserted} new")
     return inserted
 
 
-def run_greenhouse(supabase: Client, industries: list[str] | None = None) -> dict[str, int]:
+def run_greenhouse(db, industries: list[str] | None = None) -> dict[str, int]:
     """Run the Greenhouse scraper for all companies in companies.json."""
     totals: dict[str, int] = {}
     dead_slugs: list[str] = []
@@ -117,7 +96,7 @@ def run_greenhouse(supabase: Client, industries: list[str] | None = None) -> dic
         total = 0
         log.info(f"Scraping Greenhouse for {industry} ({len(rows)} companies)…")
         for row in rows:
-            n = scrape_company(row, supabase, industry, dead_slugs)
+            n = scrape_company(row, db, industry, dead_slugs)
             total += n
             time.sleep(1)  # be polite to the API
         totals[industry] = total

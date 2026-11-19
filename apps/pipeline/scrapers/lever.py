@@ -10,10 +10,10 @@ import requests
 import time
 import logging
 from datetime import datetime, timezone
-from supabase import Client
 
 from companies_loader import grouped_by_industry
 from scrapers.filters import title_passes
+from scrapers.raw_jobs_upsert import batch_upsert as _batch_upsert
 
 log = logging.getLogger(__name__)
 
@@ -26,29 +26,11 @@ BASE_URL    = "https://api.lever.co/v0/postings/{company}?mode=json"
 BASE_URL_EU = "https://api.eu.lever.co/v0/postings/{company}?mode=json"
 HEADERS  = {"User-Agent": "CareerPathwaysPlatform/1.0 (workforce-research)"}
 
-# Batch upserts — see greenhouse.py for rationale.
+# Batch upserts — see scrapers/raw_jobs_upsert.py for rationale.
 UPSERT_BATCH_SIZE = 50
 
 
-def _batch_upsert(supabase: Client, rows: list[dict], company_slug: str) -> int:
-    if not rows:
-        return 0
-    inserted = 0
-    for i in range(0, len(rows), UPSERT_BATCH_SIZE):
-        batch = rows[i:i + UPSERT_BATCH_SIZE]
-        try:
-            result = (
-                supabase.table("raw_jobs")
-                .upsert(batch, on_conflict="url", ignore_duplicates=True)
-                .execute()
-            )
-            inserted += len(result.data or [])
-        except Exception as e:
-            log.error(f"Batch upsert failed for {company_slug} (rows {i}-{i+len(batch)}): {e}")
-    return inserted
-
-
-def scrape_company(company: dict, supabase: Client, industry: str, dead_slugs: list[str]) -> int:
+def scrape_company(company: dict, db, industry: str, dead_slugs: list[str]) -> int:
     company_slug = company["slug"]
     base = BASE_URL_EU if company.get("region") == "eu" else BASE_URL
     url = base.format(company=company_slug)
@@ -98,12 +80,12 @@ def scrape_company(company: dict, supabase: Client, industry: str, dead_slugs: l
             "scraped_at":       datetime.now(timezone.utc).isoformat(),
         })
 
-    inserted = _batch_upsert(supabase, rows, company_slug)
+    inserted = _batch_upsert(db, rows, company_slug)
     log.info(f"  {company_slug}: {len(postings)} jobs, {inserted} new")
     return inserted
 
 
-def run_lever(supabase: Client, industries: list[str] | None = None) -> dict[str, int]:
+def run_lever(db, industries: list[str] | None = None) -> dict[str, int]:
     totals: dict[str, int] = {}
     dead_slugs: list[str] = []
     by_industry = grouped_by_industry("lever", industries)
@@ -112,7 +94,7 @@ def run_lever(supabase: Client, industries: list[str] | None = None) -> dict[str
         total = 0
         log.info(f"Scraping Lever for {industry} ({len(rows)} companies)…")
         for row in rows:
-            n = scrape_company(row, supabase, industry, dead_slugs)
+            n = scrape_company(row, db, industry, dead_slugs)
             total += n
             time.sleep(1)
         totals[industry] = total

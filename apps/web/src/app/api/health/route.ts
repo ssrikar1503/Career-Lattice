@@ -13,11 +13,12 @@
  * are present and what state circuit breakers are in.
  */
 import { getProviderStatus } from '@/lib/ai-providers';
+import { isDbConfigured } from '@/lib/db';
 
 export async function GET() {
   const providers      = getProviderStatus();
   const anyProvider    = providers.some(p => p.configured && p.circuit !== 'open');
-  const supabaseConfig = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const databaseConfig = isDbConfigured();
   const adminConfig    = !!process.env.ADMIN_PASSWORD;
 
   const status = anyProvider ? 'ok' : 'degraded';
@@ -27,7 +28,7 @@ export async function GET() {
     timestamp: new Date().toISOString(),
     services: {
       ai_advisor:  anyProvider ? 'ok' : 'unavailable',
-      database:    supabaseConfig ? 'configured' : 'not_configured',
+      database:    databaseConfig ? 'configured' : 'not_configured',
       admin:       adminConfig ? 'configured' : 'not_configured',
     },
     ai_providers: providers,

@@ -37,32 +37,21 @@ import argparse
 import logging
 
 from dotenv import load_dotenv
-from supabase import create_client
+
+import db
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger(__name__)
 
-PAGE = 1000
 
+def fetch_all(table: str, columns: str) -> list[dict]:
+    """Fetch a whole table, oldest first.
 
-def fetch_all(supabase, table: str, columns: str) -> list[dict]:
-    """Page through a whole table; PostgREST caps single responses."""
-    rows: list[dict] = []
-    offset = 0
-    while True:
-        batch = (
-            supabase.table(table)
-            .select(columns)
-            .order("created_at")
-            .order("id")
-            .range(offset, offset + PAGE - 1)
-            .execute()
-            .data
-        ) or []
-        rows.extend(batch)
-        if len(batch) < PAGE:
-            return rows
-        offset += PAGE
+    Direct Postgres has no per-response row cap, so this is a single query (the
+    old Supabase/PostgREST version had to paginate in 1000-row pages). `table`
+    and `columns` are fixed literals from the call sites below, never user
+    input, so interpolating them is safe."""
+    return db.fetchall(f"SELECT {columns} FROM {table} ORDER BY created_at, id")
 
 
 def main() -> None:
@@ -73,27 +62,24 @@ def main() -> None:
     args = parser.parse_args()
 
     load_dotenv()
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-    if not (url and key):
-        raise SystemExit("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required")
-    supabase = create_client(url, key)
+    if not os.environ.get("DATABASE_URL"):
+        raise SystemExit("DATABASE_URL is required")
 
     log.info("Fetching canonical roles…")
-    roles = {r["id"]: r["title"] for r in fetch_all(supabase, "canonical_roles", "id, title")}
+    roles = {r["id"]: r["title"] for r in fetch_all("canonical_roles", "id, title")}
 
     log.info("Fetching raw jobs…")
     raw = {r["id"]: r for r in fetch_all(
-        supabase, "raw_jobs", "id, source, company, raw_title, raw_description")}
+        "raw_jobs", "id, source, company, raw_title, raw_description")}
 
     log.info("Fetching extractions…")
     extracted = fetch_all(
-        supabase, "extracted_jobs",
+        "extracted_jobs",
         "id, raw_job_id, normalized_title, skills, seniority, location, country, industry")
 
     log.info("Fetching role matches…")
     matches_by_job: dict[str, list[dict]] = {}
-    for m in fetch_all(supabase, "role_matches",
+    for m in fetch_all("role_matches",
                        "extracted_job_id, canonical_role_id, confidence, status"):
         matches_by_job.setdefault(m["extracted_job_id"], []).append({
             "role_title": roles.get(m["canonical_role_id"], "unknown"),

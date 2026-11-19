@@ -25,7 +25,7 @@
  * Cache: 60s in-memory per (industry, countryFilter) combo.
  */
 
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { getPool, query } from '@/lib/db';
 
 interface RoleCount {
   count:     number;
@@ -76,19 +76,17 @@ export async function GET(request: Request) {
     return Response.json(hit.data, { headers: { 'X-Cache': 'HIT' } });
   }
 
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
+  if (!getPool()) {
     return Response.json({}, { headers: { 'X-Cache': 'BYPASS-NO-DB' } });
   }
 
   try {
-    const { data: industry } = await supabase
-      .from('industries')
-      .select('id')
-      .eq('slug', industrySlug)
-      .single();
-
-    if (!industry?.id) {
+    const industryRows = await query<{ id: string }>(
+      `SELECT id FROM industries WHERE slug = $1 LIMIT 1`,
+      [industrySlug],
+    );
+    const industryId = industryRows[0]?.id;
+    if (!industryId) {
       return Response.json({});
     }
 
@@ -96,12 +94,18 @@ export async function GET(request: Request) {
 
     if (filter.mode === 'us-cached') {
       // Fast path: use cached US-only counts written by the matcher.
-      const { data: roles } = await supabase
-        .from('canonical_roles')
-        .select('title, open_jobs_count, hiring_companies')
-        .eq('industry_id', industry.id);
+      const roles = await query<{
+        title: string | null;
+        open_jobs_count: number | null;
+        hiring_companies: string[] | null;
+      }>(
+        `SELECT title, open_jobs_count, hiring_companies
+           FROM canonical_roles
+          WHERE industry_id = $1`,
+        [industryId],
+      );
 
-      for (const r of roles ?? []) {
+      for (const r of roles) {
         const title = (r.title ?? '').toLowerCase().trim();
         if (!title) continue;
         out[title] = {
@@ -110,65 +114,42 @@ export async function GET(request: Request) {
         };
       }
     } else {
-      // Slow path: live aggregation across role_matches with country filter.
-      const { data: roles } = await supabase
-        .from('canonical_roles')
-        .select('id, title')
-        .eq('industry_id', industry.id);
+      // Slow path: live aggregation across approved matches, country-filtered.
+      // Direct SQL has no 1000-row cap, so one JOIN returns every approved
+      // match for the industry; filtering/bucketing happens in memory to
+      // preserve the exact prior semantics (country filter, company set).
+      const rows = await query<{
+        title: string | null;
+        country: string | null;
+        company: string | null;
+      }>(
+        `SELECT cr.title, ej.country, rj.company
+           FROM role_matches    rm
+           JOIN canonical_roles cr ON cr.id = rm.canonical_role_id
+           JOIN extracted_jobs  ej ON ej.id = rm.extracted_job_id
+           JOIN raw_jobs        rj ON rj.id = ej.raw_job_id
+          WHERE cr.industry_id = $1 AND rm.status = 'approved'`,
+        [industryId],
+      );
 
-      const idToTitle = new Map<string, string>();
-      for (const r of roles ?? []) {
-        if (r.title) idToTitle.set(r.id, r.title.toLowerCase().trim());
-      }
-      if (idToTitle.size === 0) {
-        return Response.json({});
-      }
-
-      // Page through role_matches - Supabase PostgREST silently caps a
-      // single .limit() / unbounded select at 1000 rows. With matches growing
-      // past 1000 across an industry, the worldwide count would be wrong
-      // without pagination.
-      const PAGE = 1000;
-      const matches: Array<{
-        canonical_role_id: string;
-        extracted_jobs?: { country?: string; raw_jobs?: { company?: string } } | null;
-      }> = [];
-      const roleIdList = Array.from(idToTitle.keys());
-      let offset = 0;
-      while (true) {
-        const { data: page } = await supabase
-          .from('role_matches')
-          .select('canonical_role_id, extracted_jobs(country, raw_jobs(company))')
-          .eq('status', 'approved')
-          .in('canonical_role_id', roleIdList)
-          .range(offset, offset + PAGE - 1);
-        const rows = (page ?? []) as typeof matches;
-        matches.push(...rows);
-        if (rows.length < PAGE) break;
-        offset += PAGE;
-      }
-
-      // Aggregate
       type Bucket = { count: number; companies: Set<string> };
-      const byRoleId = new Map<string, Bucket>();
+      const byTitle = new Map<string, Bucket>();
       const wantedCountries = filter.mode === 'list' ? new Set(filter.list) : null;
 
-      for (const m of matches) {
-        const ej = m.extracted_jobs;
-        const country = (ej?.country || 'XX').toUpperCase();
+      for (const m of rows) {
+        const title = (m.title ?? '').toLowerCase().trim();
+        if (!title) continue;
+        const country = (m.country || 'XX').toUpperCase();
         if (wantedCountries && !wantedCountries.has(country)) continue;
 
-        const bucket = byRoleId.get(m.canonical_role_id)
-          ?? { count: 0, companies: new Set<string>() };
+        const bucket = byTitle.get(title) ?? { count: 0, companies: new Set<string>() };
         bucket.count += 1;
-        const company = (ej?.raw_jobs?.company || '').trim();
+        const company = (m.company || '').trim();
         if (company) bucket.companies.add(company);
-        byRoleId.set(m.canonical_role_id, bucket);
+        byTitle.set(title, bucket);
       }
 
-      for (const [roleId, bucket] of byRoleId) {
-        const title = idToTitle.get(roleId);
-        if (!title) continue;
+      for (const [title, bucket] of byTitle) {
         out[title] = { count: bucket.count, companies: Array.from(bucket.companies) };
       }
     }
