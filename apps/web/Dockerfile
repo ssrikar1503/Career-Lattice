@@ -21,7 +21,11 @@ WORKDIR /app
 # libc6-compat helps the rare native dep run on alpine/musl.
 RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json ./
-RUN npm ci
+# Use `npm install` (not `npm ci`) because the committed lockfile drifts from
+# package.json on some platforms (optional native deps like @emnapi/* differ by
+# OS/arch). This matches how the local + Vercel builds install and keeps the
+# container build from failing on strict lockfile validation.
+RUN npm install --no-audit --no-fund
 
 # ---- 2. builder: compile the standalone server bundle ----
 FROM node:22-alpine AS builder
